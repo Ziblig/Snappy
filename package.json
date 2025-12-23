@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "parcel index.html",
     "start": "npm run dev",
-    "build": "parcel build index.html",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:gh": "parcel build index.html --dist-dir docs --public-url ./",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "homepage": "https://Ziblig.github.io/Snappy",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "keywords": [],
   "author": "Sofiia Radchenko",
@@ -14,6 +17,7 @@
   "type": "commonjs",
   "devDependencies": {
     "@parcel/transformer-posthtml": "^2.16.1",
+    "gh-pages": "^6.3.0",
     "parcel": "^2.16.1",
     "posthtml-include": "^2.0.1"
   },
