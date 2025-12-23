@@ -1,0 +1,60 @@
+@import './header.css';
+@import './sidebar.css';
+@import './icon.css';
+@import './notes.css';
+@import './note-modal.css';
+
+
+:root {
+  /* дефолтні значення */
+  --background: var(--bg-light);
+  --text-color: var(--text-light);
+  --sidebar: var(--sidebar-light);
+
+  /* light mode */
+  --bg-light: #f7efe4;
+  --text-light: #80644b;
+  --sidebar-light: #f7e8d3;
+  /* dark mode */
+  --bg-dark: #80644b;
+  --text-dark: #f7efe4;
+  --sidebar-dark: #6a523d;
+}
+
+@font-face {
+  font-family: "Montserrat Alternates";
+  src: url("../assets/fonts/MontserratAlternates-Regular.ttf");
+}
+
+body {
+  font-family: "Montserrat Alternates", sans-serif;
+  margin: 0;
+  background-color: var(--background);
+}
+/* active dark mode */
+body.dark {
+  --background: var(--bg-dark);
+  --text-color: var(--text-dark);
+  --sidebar: var(--sidebar-dark);
+}
+/* active light mode */
+body.light {
+  --background: var(--bg-light);
+  --text-color: var(--text-light);
+  --sidebar: var(--sidebar-light);
+}
+
+/* медіазапит на тему */
+@media (prefers-color-scheme:dark) {
+  :root {
+    --background: var(--bg-dark);
+    --text-colour: var(--text-light);
+    --sidebar: var(--sidebar-dark);
+  }
+}
+
+.container {
+  width: 1164px;
+  padding: 0px 16px;
+  margin: 0 auto;
+}

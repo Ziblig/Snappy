@@ -1,0 +1,170 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 138px;
+  background-color: var(--sidebar);
+  overflow: hidden;
+  border-radius: 0px 20px 20px 0px;
+  box-shadow: 2px 0 6px #76767536;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+}
+.sidebar_title {
+  font-size: 24px;
+  opacity: 0;
+  margin-top: 160px;
+  transition: opacity 0.3s ease;
+  text-align: center;
+  color: var(--text-color);
+}
+
+.sidebar_content {
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-left: 57px;
+}
+/* елементи списку */
+.content_item {
+  display: flex;
+  text-decoration: none;
+  font-size: 16px;
+  transition: background-color 0.3s ease, border-radius 0.3s ease,
+  padding 0.3s ease;
+  align-items: center;
+}
+
+.content_item:hover {
+  background-color: #d8ad50;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+#sidebar_toggle:not(:checked) ~ .sidebar .content_item:hover {
+  background-color: transparent;
+  padding: initial;
+  border-radius: initial;
+}
+
+#sidebar_toggle:not(:checked) ~ .sidebar .content_item:hover i {
+  transform: scale(1.2);
+}
+
+.content_item span {
+  color: var(--text-color);
+  opacity: 0;
+  white-space: nowrap;
+  margin-left: 10px;
+  transition: opacity 0.3s ease;
+}
+
+/* іконки */
+.icon-note,
+.icon-calendar,
+.icon-settings {
+  color: var(--text-color);
+  font-size: 24px;
+  width: 24px;
+  text-align: center;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.sidebar_btn {
+  position: absolute;
+  top: 40px;
+  left: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  width: 24px;
+  height: 24px;
+  z-index: 11;
+  cursor: pointer;
+}
+
+.sidebar_btn:hover {
+  background-color: #d8ad50;
+  border-radius: 10px;
+}
+
+/* лінії бургера */
+.sidebar_btn span,
+.sidebar_btn span::before,
+.sidebar_btn span::after {
+  display: block;
+  position: absolute;
+  width: 24px;
+  height: 3px;
+  background-color: var(--text-color);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.sidebar_btn span::before {
+  content: "";
+  top: -8px;
+}
+
+.sidebar_btn span::after {
+  content: "";
+  top: 8px;
+}
+
+/* бургер => хрестика */
+#sidebar_toggle:checked + .sidebar_btn span {
+  transform: rotate(45deg);
+}
+
+#sidebar_toggle:checked + .sidebar_btn span:before {
+  top: 0;
+  transform: rotate(90deg);
+}
+
+#sidebar_toggle:checked + .sidebar_btn span::after {
+  opacity: 0;
+}
+
+/* Відкриття  sidebar */
+#sidebar_toggle:checked ~ .sidebar {
+  width: 226px;
+}
+
+#sidebar_toggle:checked ~ .sidebar .content_item span,
+#sidebar_toggle:checked ~ .sidebar .sidebar_title {
+  opacity: 1;
+}
+
+#sidebar_toggle {
+  position: absolute;
+}
+
+/* bluuur */
+.page-blur-overlay{
+  position: fixed;
+  /* inset - займає всю висоту і ширену по батьківському елементу (body) */
+  inset: 0;
+  pointer-events: none;
+  backdrop-filter: none; 
+  transition: opacity 0.3s ease;
+  z-index: 5;
+}
+
+#sidebar_toggle:checked ~ .page-blur-overlay{
+  pointer-events: auto;
+  opacity: 1;
+  backdrop-filter: blur(6px);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.page-content{
+  position: relative;
+  z-index: 1;
+}
+

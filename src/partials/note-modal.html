@@ -1,0 +1,35 @@
+<div id="taskModal" class="modal hidden">
+  <div class="modal-content">
+    <h3 id="modalTitle">Note Details</h3>
+
+    <label class="modal-field">
+      <span>Summary</span>
+      <input id="taskSummary" type="text" placeholder="Short note title" />
+    </label>
+
+    <label class="modal-field">
+      <span>Description</span>
+      <textarea id="taskDescription" placeholder="Describe your note..."></textarea>
+    </label>
+
+    <label class="modal-field">
+      <span>Location</span>
+      <input id="taskLocation" type="text" placeholder="Optional location" />
+    </label>
+
+    <label class="modal-field">
+      <span>Start date-time</span>
+      <input id="taskStart" type="datetime-local" />
+    </label>
+
+    <label class="modal-field">
+      <span>End date-time</span>
+      <input id="taskEnd" type="datetime-local" />
+    </label>
+
+    <div class="modal-actions">
+      <button id="saveTaskBtn" class="btn primary">Create note</button>
+      <button id="cancelTaskBtn" class="btn secondary">Cancel</button>
+    </div>
+  </div>
+</div>

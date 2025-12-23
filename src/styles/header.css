@@ -1,0 +1,114 @@
+.header {
+  padding: 40px 0px 8px 0px;
+}
+
+.header_wrp {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.header_title {
+  font-size: 16px;
+  font-weight: 400;
+  margin: 0;
+  color: var(--text-color);
+}
+
+/* input */
+.search-input-wrp {
+  display: flex;
+  align-items: center;
+  width: 404px;
+  height: 24px;
+  border-radius: 10px;
+  padding: 10px 10px 10px 0px;
+  border: 1px solid black;
+  overflow: hidden;
+}
+
+#search-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+  padding-left: 5px;
+  outline: none;
+  background-color: transparent;
+}
+
+.search-btn {
+  font-size: 20px;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 10px;
+  color: var(--text-color);
+}
+.search-btn:hover {
+  background-color: #d8ad50;
+  color: #f7e8d3;
+}
+
+/* SWITCH */
+.switch_container {
+  display: flex;
+}
+
+#switch {
+  display: none;
+}
+
+/* коричнева заокруглена штучка */
+.switch-label {
+  position: relative;
+  height: 25px;
+  width: 64px;
+  background-color: #895710;
+  border-radius: 2rem; /*32px*/
+  overflow: hidden;
+  transition: 0.3 ease;
+  cursor: pointer;
+}
+/* кружечок */
+.switch-label::before {
+  content: "";
+  display: block;
+  height: 25px;
+  width: 25px;
+  background-color: #f7e8d3;
+  position: absolute;
+  border-radius: 50%;
+  transition: 0.8s ease;
+}
+
+.switch-icons {
+  font-size: 20px;
+  position: absolute;
+}
+
+.icon-sun {
+  top: 12%;
+  left: -31%;
+}
+.icon-moon {
+  top: 9%;
+  right: 9%;
+  color: #f7e8d3;
+}
+
+#switch:checked + .switch-label::before {
+  transform: translate(39px);
+}
+#switch:checked + .switch-label {
+  background-color: #d8ad50;
+}
+
+#switch:checked + .switch-label .icon-sun {
+  left: 11%;
+}
+
+#switch:checked + .switch-label .icon-moon {
+  right: -24%;
+}
