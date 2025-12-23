@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang=en><meta charset=UTF-8><meta name=viewport content="width=device-width, initial-scale=1.0"><title>Snappy</title><link rel=stylesheet href=Snappy.0f4ccd41.css><body>
+    
+    <input type=checkbox id=sidebar_toggle>
+    <label class=sidebar_btn for=sidebar_toggle>  
+        <span></span>
+    </label>
+
+    
+    <aside class=sidebar>
+        <h3 class=sidebar_title>SNAPPY</h3>
+        
+        <ul class=sidebar_content>
+            <li>
+                <a href=# class=content_item>
+                    <i class=icon-note></i> <span>Note</span>
+                </a>
+            </li>
+            <li>
+                <a href=# class=content_item>
+                    <i class=icon-calendar></i> <span>Calendar</span>
+                </a>
+            </li>
+            <li>
+                <a href=# class=content_item>
+                    <i class=icon-settings></i> <span>Settings</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    <div class=page-blur-overlay></div>
+    <header class=header>
+        <div class="container header_wrp">
+            <h2 class=header_title>SNAPPY</h2>
+
+            
+             <div class=search-input-wrp>
+                <i class="icon-search search-btn"></i>
+                <input id=search-input placeholder=Search...>
+             </div>
+            
+            
+            <div class=switch_container>
+                <input type=checkbox id=switch>
+                <label for=switch class=switch-label>
+                    <i class="icon-sun switch-icons"></i>
+                    <i class="icon-moon switch-icons"></i>
+                </label>
+            </div>
+
+            
+            <div class=user-acc_wrp>
+                <i class=icon-user-acc></i>
+            </div>
+        </div>
+    </header>
+    <main>
+        <section class=notes>
+    <div class=container>
+      <div class=notes_title-wrap>
+        <h2 class=notes_title>Notes</h2>
+        <div class=notes_btn-wrap>
+        <button class=notes-btn id=add-note_btn><i class=icon-add></i></button>
+        <button class=notes-btn id=form-note_btn><i class=icon-list-bulleted></i></button>
+        </div>
+      </div>
+      <div id=taskList class=notes_list></div>
+    </div>
+  </section>
+
+        <div id=taskModal class="hidden modal">
+  <div class=modal-content>
+    <h3 id=modalTitle>Note Details</h3>
+
+    <label class=modal-field>
+      <span>Summary</span>
+      <input id=taskSummary placeholder="Short note title">
+    </label>
+
+    <label class=modal-field>
+      <span>Description</span>
+      <textarea id=taskDescription placeholder="Describe your note..."></textarea>
+    </label>
+
+    <label class=modal-field>
+      <span>Location</span>
+      <input id=taskLocation placeholder="Optional location">
+    </label>
+
+    <label class=modal-field>
+      <span>Start date-time</span>
+      <input id=taskStart type=datetime-local>
+    </label>
+
+    <label class=modal-field>
+      <span>End date-time</span>
+      <input id=taskEnd type=datetime-local>
+    </label>
+
+    <div class=modal-actions>
+      <button id=saveTaskBtn class="btn primary">Create note</button>
+      <button id=cancelTaskBtn class="btn secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+    </main>
+    <script type=module src=Snappy.8d1898d3.js></script>
+    <script src=https://accounts.google.com/gsi/client async defer></script>
+    <script src=https://apis.google.com/js/api.js async defer></script>
+
