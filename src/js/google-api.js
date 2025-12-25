@@ -87,13 +87,42 @@ export async function syncNoteToCalendar(title, description, startIso, endIso = 
 // Функція видалення події з Google Календаря
 export async function deleteCalendarEvent(googleEventId) {
   if (!googleEventId) return;
-  try {
-    await gapi.client.calendar.events.delete({
-      'calendarId': 'primary',
-      'eventId': googleEventId,
-    });
-    console.log('Event deleted from Google Calendar');
-  } catch (err) {
-    console.error('Error deleting from Google:', err);
+
+  if (!gapiInited || !gisInited) {
+    console.warn('Google API not initialized - cannot delete event');
+    return;
   }
+
+  return new Promise((resolve, reject) => {
+    tokenClient.callback = async (resp) => {
+      if (resp.error !== undefined) {
+        console.error('Token error while deleting event:', resp);
+        reject(resp);
+        return;
+      }
+
+      try {
+        await gapi.client.calendar.events.delete({
+          'calendarId': 'primary',
+          'eventId': googleEventId,
+        });
+        console.log('Event deleted from Google Calendar');
+        resolve();
+      } catch (err) {
+        console.error('Error deleting from Google:', err);
+        reject(err);
+      }
+    };
+
+    try {
+      if (gapi.client.getToken() === null) {
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      } else {
+        tokenClient.requestAccessToken({ prompt: '' });
+      }
+    } catch (err) {
+      console.error('Error requesting access token for delete:', err);
+      reject(err);
+    }
+  });
 }
