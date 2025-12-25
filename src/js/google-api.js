@@ -40,7 +40,7 @@ export function gisLoaded() {
 };
 
 // Синхронізація нотатки з Google Календарем
-export async function syncNoteToCalendar(title, description, startIso) {
+export async function syncNoteToCalendar(title, description, startIso, endIso = null, location = null) {
     // || - або 
     if (!gapiInited || !gisInited) {
         alert("Google API not initialized");
@@ -58,19 +58,20 @@ export async function syncNoteToCalendar(title, description, startIso) {
             const event = {
             'summary': title,
             'description': description,
-            'start': { 'dateTime': startIso || new Date().toISOString(), 'timeZone': 'Europe/Kyiv' },
-            'end': { 'dateTime': new Date(startIso ? new Date(startIso).getTime() + 3600000 : Date.now() + 3600000).toISOString(), 'timeZone': 'Europe/Kyiv' }
-        };
+            'start': { 'dateTime': startIso || new Date().toISOString(), 'timeZone': 'Europe/Prague' },
+            'end': { 'dateTime': endIso || new Date(startIso ? new Date(startIso).getTime() + 3600000 : Date.now() + 3600000).toISOString(), 'timeZone': 'Europe/Prague' },
+            'location': location || undefined
+          };
 
         try {
         const response = await gapi.client.calendar.events.insert({
           'calendarId': 'primary',
           'resource': event,
         });
-        console.log('Подія створена в Google:', response.result.id);
+        console.log('Event created in Google:', response.result.id);
         resolve(response.result.id);
       } catch (err) {
-        console.error('Помилка створення події:', err);
+        console.error('Error creating event:', err);
         reject(err);
       }
     };
@@ -91,8 +92,8 @@ export async function deleteCalendarEvent(googleEventId) {
       'calendarId': 'primary',
       'eventId': googleEventId,
     });
-    console.log('Подію видалено з Google Календаря');
+    console.log('Event deleted from Google Calendar');
   } catch (err) {
-    console.error('Помилка видалення з Google:', err);
+    console.error('Error deleting from Google:', err);
   }
 }
