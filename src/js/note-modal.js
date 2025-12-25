@@ -36,7 +36,7 @@ function toInputDateTime(iso) {
 
 function formatDateTime(iso) {
     if (!iso) return "";
-    return new Date(iso).toLocaleString("uk-UA", {
+    return new Date(iso).toLocaleString("cz-CZ", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false
