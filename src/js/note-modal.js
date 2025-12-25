@@ -11,7 +11,7 @@ function loadTasks() {
         try {
             tasks = JSON.parse(stored);
         } catch (e) {
-            console.error('Помилка localStorage.', e);
+            console.error('Error parsing localStorage.', e);
             tasks = [];
         }
     }
@@ -48,7 +48,7 @@ function renderTasks(tasksToRender = tasks) {
     $list.empty();
 
     if (!tasksToRender.length) {
-        $list.append(`<p class="notes-empty">Поки що немає нотаток</p>`);
+        $list.append(`<p class="notes-empty">There are no notes yet</p>`);
         return;
     }
 
@@ -141,7 +141,7 @@ $(function () {
                 newTask.googleEventId = googleId;
                 saveTasks();
             } catch (err) {
-                console.error("Синхронізація не вдалася, але нотатка збережена локально");
+                console.error("Sync to Google Calendar failed:", err);
             }
         } else {
             const index = tasks.findIndex(task => task.id === id);
