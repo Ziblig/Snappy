@@ -11,6 +11,8 @@ import './js/sidebar';
 // Імпортуємо функції ініціалізації Google API та OAuth
 import { gapiLoaded, gisLoaded } from './js/google-api.js';
 
+import './js/settings.js';
+
 // Чекаємо, поки сторінка повністю завантажиться
 // це гарантує, що всі DOM-елементи та зовнішні скрипти вже доступні
 window.addEventListener('load', () => {

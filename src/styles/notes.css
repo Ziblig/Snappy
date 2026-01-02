@@ -20,6 +20,8 @@
   color: var(--text-color);
 }
 
+
+
 /* кнопки */
 .notes-btn {
   padding: 12px;
@@ -102,4 +104,73 @@
 
 .note-time {
     font-weight: 500;
+}
+
+/* List view: make each note a full-width row */
+#taskList.list-view {
+  display: block;
+}
+
+#taskList.list-view .note-card {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  margin-bottom: 12px; /* added gap between list items */
+}
+
+#taskList.list-view .note-card:last-child {
+  margin-bottom: 0; /* avoid extra space after last item */
+}
+
+#taskList.list-view .note-top {
+  order: 0;
+  margin-right: 8px;
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  width: 48px; /* reserve space for icons */
+  flex-shrink: 0;
+}
+
+#taskList.list-view .note-title,
+#taskList.list-view .note-text {
+  order: 1;
+  margin: 0;
+}
+
+#taskList.list-view .note-text {
+  display: block;
+  color: #555;
+  font-size: 14px;
+  flex: 1 1 auto;
+  margin-left: 4px;
+}
+
+#taskList.list-view .note-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#taskList.list-view .note-bottom {
+  order: 2;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* make icon buttons compact in list view */
+#taskList.list-view .icon-btn {
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  border-radius: 8px;
+  background: transparent;
+  opacity: 0.9;
 }

@@ -34,17 +34,11 @@
 .icon-apps:before {
   content: "\e901";
 }
-.icon-calendar:before {
-  content: "\e902";
-}
 .icon-create-folder:before {
   content: "\e903";
 }
 .icon-delete:before {
   content: "\e904";
-}
-.icon-favorite:before {
-  content: "\e905";
 }
 .icon-list-bulleted:before {
   content: "\e906";

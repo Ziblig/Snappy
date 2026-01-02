@@ -1,5 +1,6 @@
 import $ from "jquery";
 import { syncNoteToCalendar, deleteCalendarEvent, updateCalendarEvent } from './google-api.js';
+import { translations, getCurrentLang, updateUserGreeting, initSettingsListeners } from './settings.js';
 
 let tasks = [];
 const STORAGE_KEY = "myNotes";
@@ -72,7 +73,7 @@ function renderTasks(tasksToRender = tasks) {
         const startStr = startIso ? formatDateTime(startIso) : "";
         const endStr = endIso ? formatDateTime(endIso) : "";
         const time = startStr && endStr ? `${startStr} — ${endStr}` : startStr || endStr || "";
-        // Button type BUTTON ????????????????????????????????????????????????????????????
+    
         const html = `
         <article class="note-card" data-id="${task.id}">
             <div class="note-top">
@@ -89,6 +90,54 @@ function renderTasks(tasksToRender = tasks) {
         </article>`;
         $list.append(html);
     });
+}
+
+// SETTINGS PAGE 
+function renderSettingsPage() {
+    const $list = $('#taskList');
+    const lang = getCurrentLang();
+    const userName = localStorage.getItem('user-name') || '';
+    const t = translations[lang];
+
+    $list.empty().append(`
+        <div class="settings-container">
+            <div class="status-card">
+                <div>
+                    <label class="settings-label">${t.userNameLabel}</label>
+                    <input type="text" id="settings-user-name" value="${userName}" placeholder="${t.placeholderName}">
+                </div>
+                <div>
+                    <label class="settings-label">${t.langLabel}</label>
+                    <select id="settings-lang">
+                        <option value="cz" ${lang === 'cz' ? 'selected' : ''}>Čeština</option>
+                        <option value="en" ${lang === 'en' ? 'selected' : ''}>English</option>
+                    </select>
+                </div>
+                <button id="backFromSettings" class="btn secondary">${t.backBtn}</button>
+            </div>
+        </div>
+    `);
+
+    // Reinitialize listeners for newly rendered elements
+    initSettingsListeners();
+
+    $('#backFromSettings').on('click', () => {
+        history.pushState({view: 'notes'}, "", "?view=notes");
+        showNotesView();
+    });
+}
+
+/* --- 4. КЕРУВАННЯ ЕКРАНАМИ --- */
+function showNotesView() {
+    $(".notes_title").text(translations[getCurrentLang()].notesTitle);
+    $(".notes_btn-wrap").show();
+    renderTasks();
+}
+
+function showSettingsView() {
+    $(".notes_title").text(translations[getCurrentLang()].settingsTitle);
+    $(".notes_btn-wrap").hide();
+    renderSettingsPage();
 }
 
 // MODAL WINDOW FUNCTIONS
@@ -120,10 +169,49 @@ function closeModal() {
     $("#taskModal").addClass('hidden');
 }
 
+
 // MAIN LOGIC AFTER PAGE LOAD
 $(function () {
     loadTasks();
     renderTasks();
+    initSettingsListeners();
+
+     // Перевірка URL при старті
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    if (view === 'calendar') showCalendarView();
+    else if (view === 'settings') showSettingsView();
+    else showNotesView();
+
+    // Навігація сайдбару
+    $('.content_item:contains("Calendar")').on('click', function(e) {
+        e.preventDefault();
+        history.pushState({view: 'calendar'}, "", "?view=calendar");
+        showCalendarView();
+        $('#sidebar_toggle').prop('checked', false);
+    });
+
+    $('.content_item:contains("Note")').on('click', function(e) {
+        e.preventDefault();
+        history.pushState({view: 'notes'}, "", "?view=notes");
+        showNotesView();
+        $('#sidebar_toggle').prop('checked', false);
+    });
+
+    $('.content_item:contains("Settings")').on('click', function(e) {
+        e.preventDefault();
+        history.pushState({view: 'settings'}, "", "?view=settings");
+        showSettingsView();
+        $('#sidebar_toggle').prop('checked', false);
+    });
+
+    // Обробка кнопок "Назад/Вперед"
+    window.onpopstate = function() {
+        const v = new URLSearchParams(window.location.search).get('view');
+        if (v === 'calendar') showCalendarView();
+        else if (v === 'settings') showSettingsView();
+        else showNotesView();
+    };
 
     // SEARCH NOTES BY SUMMARY OR DESCRIPTION
     $('input[placeholder="Search..."]').on('input', function() {
@@ -135,11 +223,21 @@ $(function () {
         renderTasks(filtered);
     });
    
-    // TOGGLE BETWEEN GRID AND LIST VIEW
-    $('.icon-btn:has(.icon-list), .icon-list').closest('button').on('click', function() {
+
+    // Consolidated handler: handles header button and icon clicks
+    // TOGGLE - ON/OFF LIST VIEW
+    $('#form-note_btn').on('click', function() {
         $('#taskList').toggleClass('list-view');
         const isList = $('#taskList').hasClass('list-view');
+        // CHANGING THE LINK HASH
         window.location.hash = isList ? 'view=list' : 'view=grid';
+        // Toggle icon: list-bulleted ↔ apps
+        // ІКОНКА <i class="icon-list-bulleted"> САМЕ В КНОПЦІ form-note_btn
+        // THIS - FORM-NOTE_BTN
+        const $icon = $(this).find('i');
+        // icon-list-bulleted - LIST
+        // icon-apps - GRID
+        $icon.toggleClass('icon-list-bulleted icon-apps');
     });
 
     // ADD NOTE BUTTON OPENS MODAL IN NEW MODE
@@ -241,4 +339,14 @@ $(function () {
         saveTasks();
         renderTasks();
     });
+
+    // handle language change emitted by settings.js (no full page reload)
+    $(document).on('app:langChanged', () => {
+        const v = new URLSearchParams(window.location.search).get('view');
+        if (v === 'calendar') showCalendarView();
+        else if (v === 'settings') showSettingsView();
+        else showNotesView();
+        updateUserGreeting();
+    });
 });
+

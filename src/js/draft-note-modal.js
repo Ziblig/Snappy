@@ -299,3 +299,138 @@ $(function () {
         renderTasks();
     });
 });
+
+
+
+// // // MAIN LOGIC AFTER PAGE LOAD
+// $(function () {
+//     loadTasks();
+//     renderTasks();
+
+//     // SEARCH NOTES BY SUMMARY OR DESCRIPTION
+//     $('input[placeholder="Search..."]').on('input', function() {
+//         const query = $(this).val().toLowerCase();
+//         const filtered = tasks.filter(t => 
+//             t.summary.toLowerCase().includes(query) || 
+//             (t.description && t.description.toLowerCase().includes(query))
+//         );
+//         renderTasks(filtered);
+//     });
+   
+
+//     // Consolidated handler: handles header button and icon clicks
+//     // TOGGLE - ON/OFF LIST VIEW
+//     $('#form-note_btn').on('click', function() {
+//         $('#taskList').toggleClass('list-view');
+//         const isList = $('#taskList').hasClass('list-view');
+//         // CHANGING THE LINK HASH
+//         window.location.hash = isList ? 'view=list' : 'view=grid';
+//         // Toggle icon: list-bulleted ↔ apps
+//         // ІКОНКА <i class="icon-list-bulleted"> САМЕ В КНОПЦІ form-note_btn
+//         // THIS - FORM-NOTE_BTN
+//         const $icon = $(this).find('i');
+//         // icon-list-bulleted - LIST
+//         // icon-apps - GRID
+//         $icon.toggleClass('icon-list-bulleted icon-apps');
+//     });
+
+//     // ADD NOTE BUTTON OPENS MODAL IN NEW MODE
+//     $(`#add-note_btn`).on('click', () => openModal("new"));
+//     // CANCEL BUTTON CLOSES MODAL
+//     $('#cancelTaskBtn').on('click', closeModal);
+
+//     // SAVE BUTTON - CREATE OR UPDATE NOTE
+//     $('#saveTaskBtn').on('click', async function () {
+//         const mode = $(this).data('mode');
+//         const id = Number($(this).data('id'));
+//         const summary = $("#taskSummary").val().trim();
+//         const description = $("#taskDescription").val().trim();
+//         const startVal = $("#taskStart").val();
+//         const endVal = $("#taskEnd").val();
+//         const locationVal = $("#taskLocation").val();
+
+//         if (!summary) {
+//             alert("Summary can't be empty");
+//             return;
+//         }
+
+//         // NOTE TIME AND LOCATION PROCESSING
+//         const start = startVal ? new Date(startVal).toISOString() : null;
+//         const end = endVal ? new Date(endVal).toISOString() : (start ? addHoursToIso(start, 1) : null);
+//         const location = locationVal ? locationVal.trim() : null;
+
+//         // ID FOR NEW NOTE DATE.now()
+//         if (mode === "new") {
+//             const newTask = { id: Date.now(), summary, description, start, end, location, googleEventId: null };
+//             tasks.push(newTask);
+            
+//             // SYNC TO GOOGLE CALENDAR
+//             try {
+//                 const googleId = await syncNoteToCalendar(summary, description, start, end, location);
+//                 newTask.googleEventId = googleId;
+//                 saveTasks();
+//             // IF ERROR, SAVING LOCALLY WITHOUT GOOGLE EVENT ID
+//             } catch (err) {
+//                 console.error("Sync to Google Calendar failed:", err);
+//             }
+//         } else {
+//             const index = tasks.findIndex(task => task.id === id);
+//             if (index !== -1) {
+//                 const oldTask = tasks[index];
+//                 tasks[index] = { ...tasks[index], summary, description, start, end, location };
+                
+//                 // SYNC UPDATES TO GOOGLE CALENDAR
+//                 if (oldTask.googleEventId) {
+//                     try {
+//                         // Update existing event
+//                         await updateCalendarEvent(oldTask.googleEventId, summary, description, start, end, location);
+//                     } catch (err) {
+//                         console.error("Failed to update Google Calendar event:", err);
+//                     }
+//                 } else {
+//                     // CREATE NEW EVENT IF NONE EXISTS BEFORE
+//                     try {
+//                         const googleId = await syncNoteToCalendar(summary, description, start, end, location);
+//                         tasks[index].googleEventId = googleId;
+//                     } catch (err) {
+//                         console.error("Failed to create Google Calendar event:", err);
+//                     }
+//                 }
+//             }
+//         }
+
+//         saveTasks();
+//         renderTasks();
+//         closeModal();
+//     });
+
+
+//     // EDITTING NOTES
+//     $('#taskList').on("click", ".note-edit-btn", function () {
+//         const id = Number($(this).closest(".note-card").data('id'));
+//         const task = tasks.find(t => t.id === id);
+//         if (task) openModal("edit", task);
+//     });
+
+
+//     // DELETING NOTES
+//     $('#taskList').on("click", ".note-delete-btn", async function () {
+//         const id = Number($(this).closest(".note-card").data('id'));
+//         const taskToDelete = tasks.find(t => t.id === id);
+//         if (!confirm("Delete this note?")) return;
+
+//         // DELETE GOOGLE CALENDAR EVENT IF EXISTS
+//         if (taskToDelete && taskToDelete.googleEventId) {
+//             try {
+//                 await deleteCalendarEvent(taskToDelete.googleEventId);
+//             } catch (err) {
+//                 console.error('Failed to delete Google Calendar event:', err);
+//             }
+//         }
+
+//         // FINAL LOCAL DELETION
+//         tasks = tasks.filter(t => t.id !== id);
+//         saveTasks();
+//         renderTasks();
+//     });
+// });

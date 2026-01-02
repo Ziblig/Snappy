@@ -1,0 +1,68 @@
+.settings-container {
+    padding: 20px;
+}
+
+.status-card {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+}
+
+.settings-label {
+    font-size: 18px;
+    color: var(--text-color);
+    display: block; 
+    margin-bottom: 8px; 
+    font-weight: bold;
+
+}
+
+#settings-user-name,
+#settings-lang {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: var(--main-bg);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 16px;
+    box-sizing: border-box;
+    display: block;
+    margin-bottom: 20px;
+}
+
+#settings-lang {
+    margin-bottom: 30px;
+}
+
+#settings-user-name::placeholder {
+    color: var(--text-color);
+}
+
+.settings-container .btn.secondary {
+    width: 100%;
+    padding: 12px;
+    box-sizing: border-box;
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+.settings-container .btn.secondary {
+  color: var(--text-light) !important;
+  background: var(--sidebar-light) !important;
+}
+
+
+#settings-lang option {
+  color: var(--text-light) !important;
+}
+
+body.dark #settings-lang {
+  color: var(--text-color) !important;
+  -webkit-text-fill-color: var(--text-color) !important;
+}
+
+#user-greeting {
+    color: var(--text-color);
+}
