@@ -1,10 +1,10 @@
 import $ from "jquery";
-// Імпортуємо функції для роботи з Google Calendar
-import { syncNoteToCalendar, deleteCalendarEvent } from './google-api.js';
+import { syncNoteToCalendar, deleteCalendarEvent, updateCalendarEvent } from './google-api.js';
 
 let tasks = [];
 const STORAGE_KEY = "myNotes";
 
+// LOCAL STORAGE load/save
 function loadTasks() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -16,55 +16,63 @@ function loadTasks() {
         }
     }
 }
-
+// ???????????????????????????????????????????????????????????
 function saveTasks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
-// захист від XSS
+//  XSS prevention
 function escapeHtml(str) {
     return String(str || "").replace(/[&<>"']/g, s =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s])
     );
 }
-
+// ???????????????????????????????????????????????????????????
 function toInputDateTime(iso) {
     if (!iso) return "";
     const d = new Date(iso);
     return (d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") + "T" + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"));
 }
 
+// TIME ON THE NOTE CARD
 function formatDateTime(iso) {
     if (!iso) return "";
+    // FROM ISO: 2025-12-27T18:30:00.0000 TO 18:30 
     return new Date(iso).toLocaleString("cz-CZ", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false
     });
 }
-
+// +1 IF NO ENDING TIME
 function addHoursToIso(iso, hours = 1) {
     if (!iso) return null;
     return new Date(new Date(iso).getTime() + hours * 3600000).toISOString();
 }
 
+// ?????????????????????????????????????????????????????????
 function renderTasks(tasksToRender = tasks) {
     const $list = $('#taskList');
+    // ????????????????????????????????????????????????????????? 
     $list.empty();
 
+    // MESSAGE WHEN NO NOTES
     if (!tasksToRender.length) {
         $list.append(`<p class="notes-empty">There are no notes yet</p>`);
         return;
     }
 
+    // SORTING BY ID DESCENDING
     const sorted = [...tasksToRender].sort((a, b) => b.id - a.id);
 
+    // DISPLAY NOTES
     sorted.forEach(task => {
         const startIso = task.start || null;
         const endIso = task.end || (startIso ? addHoursToIso(startIso, 1) : null);
         const startStr = startIso ? formatDateTime(startIso) : "";
         const endStr = endIso ? formatDateTime(endIso) : "";
         const time = startStr && endStr ? `${startStr} — ${endStr}` : startStr || endStr || "";
+        // Button type BUTTON ????????????????????????????????????????????????????????????
         const html = `
         <article class="note-card" data-id="${task.id}">
             <div class="note-top">
@@ -83,10 +91,12 @@ function renderTasks(tasksToRender = tasks) {
     });
 }
 
+// MODAL WINDOW FUNCTIONS
 function openModal(mode = "new", task = null) {
     $("#taskModal").removeClass('hidden');
     $("#modalTitle").text(mode === "new" ? "New Note" : "Edit Note");
 
+    // SETTING VALUES IN INPUTS
     if (mode === "new") {
         $("#taskSummary").val("");
         $("#taskDescription").val("");
@@ -101,17 +111,21 @@ function openModal(mode = "new", task = null) {
         $("#taskLocation").val(task.location || "");
     }
 
+    // SETTING DATA ATTRIBUTES ON SAVE BUTTON
     $('#saveTaskBtn').data("mode", mode).data("id", task?.id ?? null).text(mode === "new" ? "Create Note" : "Save Changes");
 }
 
+// CLOSE MODAL
 function closeModal() {
     $("#taskModal").addClass('hidden');
 }
 
+// MAIN LOGIC AFTER PAGE LOAD
 $(function () {
     loadTasks();
     renderTasks();
 
+    // SEARCH NOTES BY SUMMARY OR DESCRIPTION
     $('input[placeholder="Search..."]').on('input', function() {
         const query = $(this).val().toLowerCase();
         const filtered = tasks.filter(t => 
@@ -120,22 +134,25 @@ $(function () {
         );
         renderTasks(filtered);
     });
-
+   
+    // TOGGLE BETWEEN GRID AND LIST VIEW
     $('.icon-btn:has(.icon-list), .icon-list').closest('button').on('click', function() {
         $('#taskList').toggleClass('list-view');
         const isList = $('#taskList').hasClass('list-view');
         window.location.hash = isList ? 'view=list' : 'view=grid';
     });
 
+    // ADD NOTE BUTTON OPENS MODAL IN NEW MODE
     $(`#add-note_btn`).on('click', () => openModal("new"));
+    // CANCEL BUTTON CLOSES MODAL
     $('#cancelTaskBtn').on('click', closeModal);
 
+    // SAVE BUTTON - CREATE OR UPDATE NOTE
     $('#saveTaskBtn').on('click', async function () {
         const mode = $(this).data('mode');
         const id = Number($(this).data('id'));
         const summary = $("#taskSummary").val().trim();
         const description = $("#taskDescription").val().trim();
-
         const startVal = $("#taskStart").val();
         const endVal = $("#taskEnd").val();
         const locationVal = $("#taskLocation").val();
@@ -145,26 +162,48 @@ $(function () {
             return;
         }
 
+        // NOTE TIME AND LOCATION PROCESSING
         const start = startVal ? new Date(startVal).toISOString() : null;
         const end = endVal ? new Date(endVal).toISOString() : (start ? addHoursToIso(start, 1) : null);
         const location = locationVal ? locationVal.trim() : null;
 
+        // ID FOR NEW NOTE DATE.now()
         if (mode === "new") {
             const newTask = { id: Date.now(), summary, description, start, end, location, googleEventId: null };
             tasks.push(newTask);
             
-            // Отримуємо ID від Google та оновлюємо нотатку
+            // SYNC TO GOOGLE CALENDAR
             try {
                 const googleId = await syncNoteToCalendar(summary, description, start, end, location);
                 newTask.googleEventId = googleId;
                 saveTasks();
+            // IF ERROR, SAVING LOCALLY WITHOUT GOOGLE EVENT ID
             } catch (err) {
                 console.error("Sync to Google Calendar failed:", err);
             }
         } else {
             const index = tasks.findIndex(task => task.id === id);
-                if (index !== -1) {
+            if (index !== -1) {
+                const oldTask = tasks[index];
                 tasks[index] = { ...tasks[index], summary, description, start, end, location };
+                
+                // SYNC UPDATES TO GOOGLE CALENDAR
+                if (oldTask.googleEventId) {
+                    try {
+                        // Update existing event
+                        await updateCalendarEvent(oldTask.googleEventId, summary, description, start, end, location);
+                    } catch (err) {
+                        console.error("Failed to update Google Calendar event:", err);
+                    }
+                } else {
+                    // CREATE NEW EVENT IF NONE EXISTS BEFORE
+                    try {
+                        const googleId = await syncNoteToCalendar(summary, description, start, end, location);
+                        tasks[index].googleEventId = googleId;
+                    } catch (err) {
+                        console.error("Failed to create Google Calendar event:", err);
+                    }
+                }
             }
         }
 
@@ -173,19 +212,22 @@ $(function () {
         closeModal();
     });
 
+
+    // EDITTING NOTES
     $('#taskList').on("click", ".note-edit-btn", function () {
         const id = Number($(this).closest(".note-card").data('id'));
         const task = tasks.find(t => t.id === id);
         if (task) openModal("edit", task);
     });
 
+
+    // DELETING NOTES
     $('#taskList').on("click", ".note-delete-btn", async function () {
         const id = Number($(this).closest(".note-card").data('id'));
         const taskToDelete = tasks.find(t => t.id === id);
-
         if (!confirm("Delete this note?")) return;
 
-        // Видаляємо подію з Google Календаря, якщо є
+        // DELETE GOOGLE CALENDAR EVENT IF EXISTS
         if (taskToDelete && taskToDelete.googleEventId) {
             try {
                 await deleteCalendarEvent(taskToDelete.googleEventId);
@@ -194,6 +236,7 @@ $(function () {
             }
         }
 
+        // FINAL LOCAL DELETION
         tasks = tasks.filter(t => t.id !== id);
         saveTasks();
         renderTasks();

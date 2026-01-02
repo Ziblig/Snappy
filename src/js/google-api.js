@@ -1,22 +1,20 @@
-// const - не змінюється 
-//  let - змінюється
+// CLIENT ID
 const CLIENT_ID = process.env.GAPI_CLIENT_ID;
-// ідентифікатор клієнта
+
 const DISCOVERY_DOC = process.env.GAPI_DISCOVERY_DOC;
-// права доступу
+// ACCESS SCOPE
 const SCOPES = process.env.GAPI_SCOPES;
 
 let tokenClient;
 // ЗМІННА
-// стан ініціалізації(чи він ок) Google API
+// Google API (OK OR NOT)
 let gapiInited = false;
-// стан ініціалізації Google Identity Services
+// Google Identity Services (OK OR NOT)
 let gisInited = false;
 
-// Ініціалізація Google API
+// INITIALIZATION OF Google API (Google API Client)
 export function gapiLoaded() {
-// завантаження клієнта GAPI
-// await завжди в async
+// CLIENT DOWNLOADING GAPI
     gapi.load('client', async () => {
         await gapi.client.init({
             discoveryDocs: [DISCOVERY_DOC],
@@ -26,10 +24,9 @@ export function gapiLoaded() {
     })
 }
 
-// Ініціалізація Google Identity Services
+// INITIALIZATION OF Google Identity Services
 export function gisLoaded() {
-    // створення токен клієнта
-    // token - дані клієнта
+  // CLIENTS TOKEN INITIALIZATION
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
@@ -39,17 +36,13 @@ export function gisLoaded() {
     console.log("GIS Initialized");
 };
 
-// Синхронізація нотатки з Google Календарем
+// GC SYNC FUNCTION
 export async function syncNoteToCalendar(title, description, startIso, endIso = null, location = null) {
-    // || - або 
     if (!gapiInited || !gisInited) {
         alert("Google API not initialized");
         return null;
     }
-    // new - створення нового об'єкта
     return new Promise((resolve, reject) => {
-        // звертаємось до callback функції
-        // resop - response
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) {
                 reject(resp);
@@ -84,7 +77,7 @@ export async function syncNoteToCalendar(title, description, startIso, endIso = 
   });
 }
 
-// Функція видалення події з Google Календаря
+// DELETE EVENT FROM GOOGLE CALENDAR
 export async function deleteCalendarEvent(googleEventId) {
   if (!googleEventId) return;
 
@@ -122,6 +115,57 @@ export async function deleteCalendarEvent(googleEventId) {
       }
     } catch (err) {
       console.error('Error requesting access token for delete:', err);
+      reject(err);
+    }
+  });
+}
+
+// UPDATE EVENT IN GOOGLE CALENDAR
+export async function updateCalendarEvent(googleEventId, title, description, startIso, endIso = null, location = null) {
+  if (!googleEventId) return null;
+
+  if (!gapiInited || !gisInited) {
+    console.warn('Google API not initialized - cannot update event');
+    return null;
+  }
+
+  return new Promise((resolve, reject) => {
+    tokenClient.callback = async (resp) => {
+      if (resp.error !== undefined) {
+        reject(resp);
+        return;
+      }
+
+      const event = {
+        'summary': title,
+        'description': description,
+        'start': { 'dateTime': startIso || new Date().toISOString(), 'timeZone': 'Europe/Prague' },
+        'end': { 'dateTime': endIso || new Date(startIso ? new Date(startIso).getTime() + 3600000 : Date.now() + 3600000).toISOString(), 'timeZone': 'Europe/Prague' },
+        'location': location || undefined
+      };
+
+      try {
+        const response = await gapi.client.calendar.events.update({
+          'calendarId': 'primary',
+          'eventId': googleEventId,
+          'resource': event,
+        });
+        console.log('Event updated in Google:', response.result.id);
+        resolve(response.result.id);
+      } catch (err) {
+        console.error('Error updating event:', err);
+        reject(err);
+      }
+    };
+
+    try {
+      if (gapi.client.getToken() === null) {
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      } else {
+        tokenClient.requestAccessToken({ prompt: '' });
+      }
+    } catch (err) {
+      console.error('Error requesting access token for update:', err);
       reject(err);
     }
   });
