@@ -6,6 +6,7 @@
     "dev": "parcel index.html",
     "start": "npm run dev",
     "build:gh": "parcel build index.html --dist-dir docs --public-url ./",
+    "build": "parcel build index.html --dist-dir docs --public-url ./",
     "test": "echo \"Error: no test specified\" && exit 1",
     "homepage": "https://Ziblig.github.io/Snappy",
     "predeploy": "npm run build",
