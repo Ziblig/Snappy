@@ -129,12 +129,21 @@ function renderSettingsPage() {
 
 /* --- 4. КЕРУВАННЯ ЕКРАНАМИ --- */
 function showNotesView() {
+    $('#taskList').removeClass('settings-view');
     $(".notes_title").text(translations[getCurrentLang()].notesTitle);
     $(".notes_btn-wrap").show();
     renderTasks();
 }
 
+function showCalendarView() {
+    $('#taskList').removeClass('settings-view');
+    $(".notes_title").text(translations[getCurrentLang()].calendarTitle);
+    $(".notes_btn-wrap").hide();
+    renderCalendarStatusPage();
+}
+
 function showSettingsView() {
+    $('#taskList').addClass('settings-view');
     $(".notes_title").text(translations[getCurrentLang()].settingsTitle);
     $(".notes_btn-wrap").hide();
     renderSettingsPage();

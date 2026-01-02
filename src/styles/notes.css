@@ -174,3 +174,25 @@
   background: transparent;
   opacity: 0.9;
 }
+
+/* Keep settings page layout fixed (do not switch to notes list-view layout) */
+#taskList.settings-view {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 36px;
+}
+
+/* center the settings card and limit its width */
+#taskList.settings-view .settings-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#taskList.settings-view .status-card {
+  width: 100%;
+  max-width: 680px;
+  box-sizing: border-box;
+  margin: 0;
+}
