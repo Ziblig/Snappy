@@ -98,32 +98,22 @@ function renderTasks(tasksToRender = tasks) {
     const time =
       startStr && endStr ? `${startStr} — ${endStr}` : startStr || endStr || "";
 
-    const html = `
+        const html = `
         <article class="note-card" data-id="${task.id}">
             <div class="note-top">
                 <button type="button" class="icon-btn note-edit-btn"><i class="icon-edit"></i></button>
                 <button type="button" class="icon-btn note-delete-btn"><i class="icon-delete"></i></button>
             </div>
             <h3 class="note-title">${escapeHtml(task.summary)}</h3>
-            ${
-              task.description
-                ? `<p class="note-text">${escapeHtml(task.description)}</p>`
-                : ""
-            }
+            ${task.description ? `<p class="note-text">${escapeHtml(task.description)}</p>` : ""}
             <div class="note-bottom">
                 <span class="time-icon">🕓</span>
                 <span class="note-time">${time}</span>
-                ${
-                  task.location
-                    ? `<span class="note-location">📍 ${escapeHtml(
-                        task.location
-                      )}</span>`
-                    : ""
-                }
+                ${task.location ? `<span class="note-location">📍 ${escapeHtml(task.location)}</span>` : ""}
             </div>
         </article>`;
-    $list.append(html);
-  });
+        $list.append(html);
+    });
 }
 
 // SETTINGS PAGE
@@ -187,7 +177,6 @@ function showSettingsView() {
 // MODAL WINDOW FUNCTIONS
 function openModal(mode = "new", task = null) {
   const t = translations[getCurrentLang()];
-
   $("#taskModal").removeClass('hidden');
   $("#modalTitle").text(mode === "new" ? t.modalNewTitle : t.modalEditTitle);
 

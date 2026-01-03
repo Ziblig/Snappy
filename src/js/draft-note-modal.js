@@ -114,10 +114,81 @@ function renderTasks(tasksToRender = tasks) {
     });
 }
 
-// ukázat modální okno pro novou nebo editaci poznámky
+// SETTINGS PAGE
+function renderSettingsPage() {
+  const $list = $("#taskList");
+  const lang = getCurrentLang();
+  const userName = localStorage.getItem("user-name") || "";
+  const t = translations[lang];
+
+  $list.empty().append(`
+        <div class="settings-container">
+            <div class="status-card">
+                <div>
+                    <label class="settings-label">${t.userNameLabel}</label>
+                    <input type="text" id="settings-user-name" value="${userName}" placeholder="${
+    t.placeholderName
+  }">
+                </div>
+                <div>
+                    <label class="settings-label">${t.langLabel}</label>
+                    <select id="settings-lang">
+                        <option value="cz" ${
+                          lang === "cz" ? "selected" : ""
+                        }>Čeština</option>
+                        <option value="en" ${
+                          lang === "en" ? "selected" : ""
+                        }>English</option>
+                    </select>
+                </div>
+                <button id="backFromSettings" class="btn secondary">${
+                  t.backBtn
+                }</button>
+            </div>
+        </div>
+    `);
+
+  // REINITIALIZE SETTINGS LISTENERS
+  initSettingsListeners();
+
+  $("#backFromSettings").on("click", () => {
+    history.pushState({ view: "notes" }, "", "?view=notes");
+    showNotesView();
+  });
+}
+
+//LANGUAGE-SENSITIVE VIEW FUNCTIONS
+function showNotesView() {
+  $("#taskList").removeClass("settings-view");
+  $(".notes_title").text(translations[getCurrentLang()].notesTitle);
+  $(".notes_btn-wrap").show();
+  renderTasks();
+}
+
+function showSettingsView() {
+  $("#taskList").addClass("settings-view");
+  $(".notes_title").text(translations[getCurrentLang()].settingsTitle);
+  $(".notes_btn-wrap").hide();
+  renderSettingsPage();
+}
+
+// MODAL WINDOW FUNCTIONS
 function openModal(mode = "new", task = null) {
+  const t = translations[getCurrentLang()];
     $("#taskModal").removeClass('hidden');
     $("#modalTitle").text(mode === "new" ? "New Note" : "Edit Note");
+
+    // set field labels and placeholders from translations
+    const $fields = $(".modal-field span");
+    $fields.eq(0).text(t.summaryLabel);      // summary
+    $fields.eq(1).text(t.descriptionLabel);  // description
+    $fields.eq(2).text(t.locationLabel);     // location
+    $fields.eq(3).text(t.startLabel);        // start
+    $fields.eq(4).text(t.endLabel);          // end
+
+    $("#taskSummary").attr('placeholder', t.summaryPlaceholder);
+    $("#taskDescription").attr('placeholder', t.descriptionPlaceholder);
+    $("#taskLocation").attr('placeholder', t.locationPlaceholder);
 
     // podminka pro vyplnění formuláře v modálním okně
     if (mode === "new") {
@@ -136,7 +207,9 @@ function openModal(mode = "new", task = null) {
     // saveTaskBtn - najde tlačítko Save v modalu, vrátí jQuery objekt, na ten teď budeme postupně volat další metody
     // tecky tam jso: tohle je řetězení metod (chaining): „Najdi tlačítko(#saveTaskBtn) → ulož na něj data → ulož další data → změň text“
     // .data("id", task?.id ?? null) - „Když task existuje, vezmi task.id, jinak vrať undefined“, „Když je vlevo null nebo undefined, použij null“
-    $('#saveTaskBtn').data("mode", mode).data("id", task?.id ?? null).text(mode === "new" ? "Create Note" : "Save Changes");
+  $('#saveTaskBtn').data("mode", mode).data("id", task?.id ?? null)
+      .text(mode === "new" ? t.createBtn : t.saveBtn);
+  $('#cancelTaskBtn').text(t.cancelBtn);
 }
 
 // zavřít modální okno
@@ -224,6 +297,7 @@ $(function () {
     // najde tlačítko Save
 
     $('#saveTaskBtn').on('click', async function () {
+        const t = translations[getCurrentLang()];
         const mode = $(this).data('mode');
         // Zjištění ID poznámky
         // vezmi uložené id z tlačítka
@@ -233,13 +307,12 @@ $(function () {
         // .trim() = odstraní mezery na začátku a konci
         const summary = $("#taskSummary").val().trim();
         const description = $("#taskDescription").val().trim();
-
         const startVal = $("#taskStart").val();
         const endVal = $("#taskEnd").val();
         const locationVal = $("#taskLocation").val();
 
         if (!summary) {
-            alert("Summary can't be empty");
+            alert(t.summaryEmpty);
             return;
         }
 
@@ -338,6 +411,13 @@ $(function () {
         // renderTasks() перерисовує UI, так що нотатка зникає зі сторінки
         renderTasks();
     });
+  // handle language change emitted by settings.js (no full page reload)
+  $(document).on("app:langChanged", () => {
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v === "settings") showSettingsView();
+    else showNotesView();
+    updateUserGreeting();
+  });
 });
 
 
