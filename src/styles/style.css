@@ -7,16 +7,16 @@
 
 
 :root {
-  /* дефолтні значення */
+  /* DEFAULT */
   --background: var(--bg-light);
   --text-color: var(--text-light);
   --sidebar: var(--sidebar-light);
 
-  /* light mode */
+  /* LIGHT MODE */
   --bg-light: #f7efe4;
   --text-light: #80644b;
   --sidebar-light: #f7e8d3;
-  /* dark mode */
+  /* DARK MODE */
   --bg-dark: #80644b;
   --text-dark: #f7efe4;
   --sidebar-dark: #6a523d;
@@ -32,20 +32,20 @@ body {
   margin: 0;
   background-color: var(--background);
 }
-/* active dark mode */
+/* ACTIVE DARK MODE */
 body.dark {
   --background: var(--bg-dark);
   --text-color: var(--text-dark);
   --sidebar: var(--sidebar-dark);
 }
-/* active light mode */
+/* ACTIVE LIGHT MODE */
 body.light {
   --background: var(--bg-light);
   --text-color: var(--text-light);
   --sidebar: var(--sidebar-light);
 }
 
-/* медіазапит на тему */
+/* MEDIA QUERY FOR LIGHT/DARK MODE */
 @media (prefers-color-scheme:dark) {
   :root {
     --background: var(--bg-dark);

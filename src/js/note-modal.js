@@ -97,7 +97,6 @@ function renderTasks(tasksToRender = tasks) {
     const endStr = endIso ? formatDateTime(endIso) : "";
     const time =
       startStr && endStr ? `${startStr} — ${endStr}` : startStr || endStr || "";
-
         const html = `
         <article class="note-card" data-id="${task.id}">
             <div class="note-top">
@@ -180,7 +179,7 @@ function openModal(mode = "new", task = null) {
   $("#taskModal").removeClass('hidden');
   $("#modalTitle").text(mode === "new" ? t.modalNewTitle : t.modalEditTitle);
 
-  // set field labels and placeholders from translations
+  // LANGUAGE-SENSITIVE LABELS AND PLACEHOLDERS OF NOTE
   const $fields = $(".modal-field span");
   $fields.eq(0).text(t.summaryLabel);      // summary
   $fields.eq(1).text(t.descriptionLabel);  // description
@@ -206,7 +205,7 @@ function openModal(mode = "new", task = null) {
     $("#taskLocation").val(task.location || "");
   }
 
-  // set save button text based on mode and store mode/id on button
+  // SET BUTTON DATA
   $('#saveTaskBtn').data("mode", mode).data("id", task?.id ?? null)
       .text(mode === "new" ? t.createBtn : t.saveBtn);
   $('#cancelTaskBtn').text(t.cancelBtn);
@@ -270,12 +269,7 @@ $(function () {
     const isList = $("#taskList").hasClass("list-view");
     // CHANGING THE LINK HASH
     window.location.hash = isList ? "view=list" : "view=grid";
-    // Toggle icon: list-bulleted ↔ apps
-    // ІКОНКА <i class="icon-list-bulleted"> САМЕ В КНОПЦІ form-note_btn
-    // THIS - FORM-NOTE_BTN
     const $icon = $(this).find("i");
-    // icon-list-bulleted - LIST
-    // icon-apps - GRID
     $icon.toggleClass("icon-list-bulleted icon-apps");
   });
 
@@ -353,7 +347,7 @@ $(function () {
         // SYNC UPDATES TO GOOGLE CALENDAR
         if (oldTask.googleEventId) {
           try {
-            // Update existing event
+            // UPDATE EXISTING EVENT
             await updateCalendarEvent(
               oldTask.googleEventId,
               summary,
@@ -416,7 +410,7 @@ $(function () {
     renderTasks();
   });
 
-  // handle language change emitted by settings.js (no full page reload)
+  // HANDLE LANGUAGE CHANGE GLOBALLY
   $(document).on("app:langChanged", () => {
     const v = new URLSearchParams(window.location.search).get("view");
     if (v === "settings") showSettingsView();

@@ -32,7 +32,7 @@
   cursor: pointer;
 }
 
-/* Контейнер нотаток */
+/* NOTES CONTAINER */
 #taskList {
     display: flex;
     flex-wrap: wrap;
@@ -40,7 +40,7 @@
     margin-top: 36px;
 }
 
-/* Картка нотатки — як на твоєму UI */
+/* NOTE CARD */
 .note-card {
     width: 230px;
     background: rgba(255, 255, 255, 0.8);
@@ -54,7 +54,7 @@
     justify-content: space-between;
 }
 
-/* Верхній ряд — іконки */
+/* HEADER OF NOTE */
 .note-top {
     display: flex;
     justify-content: flex-end;
@@ -74,21 +74,21 @@
     opacity: 1;
 }
 
-/* Заголовок */
+/* HEADER */
 .note-title {
     font-size: 18px;
     font-weight: 600;
     margin: 10px 0;
 }
 
-/* Текст */
+/* TEXT */
 .note-text {
     font-size: 14px;
     color: #444;
     margin-bottom: 10px;
 }
 
-/* Нижня панель (час) */
+/* TIME */
 .note-bottom {
     display: flex;
     align-items: center;
@@ -106,7 +106,7 @@
     font-weight: 500;
 }
 
-/* List view: make each note a full-width row */
+/* TASKLIST */
 #taskList.list-view {
   display: block;
 }
@@ -120,11 +120,11 @@
   gap: 16px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  margin-bottom: 12px; /* added gap between list items */
+  margin-bottom: 12px;
 }
 
 #taskList.list-view .note-card:last-child {
-  margin-bottom: 0; /* avoid extra space after last item */
+  margin-bottom: 0; 
 }
 
 #taskList.list-view .note-top {
@@ -134,7 +134,7 @@
   align-items: center;
   display: flex;
   gap: 8px;
-  width: 48px; /* reserve space for icons */
+  width: 48px; 
   flex-shrink: 0;
 }
 
@@ -165,7 +165,7 @@
   gap: 8px;
 }
 
-/* make icon buttons compact in list view */
+/* ICON BUTTONS */
 #taskList.list-view .icon-btn {
   width: 36px;
   height: 36px;
@@ -175,7 +175,7 @@
   opacity: 0.9;
 }
 
-/* Keep settings page layout fixed (do not switch to notes list-view layout) */
+/* SETTINGS VIEW */
 #taskList.settings-view {
   display: flex;
   flex-wrap: wrap;
@@ -183,12 +183,13 @@
   margin-top: 36px;
 }
 
-/* center the settings card and limit its width */
+/* SETTINGS CONTAINER */
 #taskList.settings-view .settings-container {
   width: 100%;
   display: flex;
   justify-content: center;
 }
+
 
 #taskList.settings-view .status-card {
   width: 100%;
