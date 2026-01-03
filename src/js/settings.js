@@ -1,6 +1,5 @@
 import $ from "jquery";
 
-// Об'єкт із перекладами
 export const translations = {
     cz: {
         settingsTitle: "Nastavení",
@@ -54,12 +53,11 @@ export const translations = {
     }
 };
 
-// GET CURRENT LANGUAGE
 export function getCurrentLang() {
     return localStorage.getItem('app-lang') || 'en';
 }
 
-// UPDATE USER GREETING
+
 export function updateUserGreeting() {
     const name = localStorage.getItem('user-name');
     const lang = getCurrentLang();
@@ -72,7 +70,7 @@ export function updateUserGreeting() {
     }
 }
 
-// INITIALIZE SETTINGS LISTENERS
+
 export function initSettingsListeners() {
     $(document).on('input', '#settings-user-name', function() {
         localStorage.setItem('user-name', $(this).val());
@@ -87,7 +85,6 @@ export function initSettingsListeners() {
         }
         localStorage.setItem('app-lang', newLang);
         updateUserGreeting();
-        // NOTIFY OTHER PARTS OF THE APP ABOUT LANGUAGE CHANGE
         $(document).trigger('app:langChanged');
     });
 }

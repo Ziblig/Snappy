@@ -1,20 +1,13 @@
-// CLIENT ID
 const CLIENT_ID = process.env.GAPI_CLIENT_ID;
-// 
 const DISCOVERY_DOC = process.env.GAPI_DISCOVERY_DOC;
-// ACCESS SCOPE
 const SCOPES = process.env.GAPI_SCOPES;
 
-// Дані клієнта(id користувача)
 let tokenClient;
-// Google API (OK OR NOT)
 let gapiInited = false;
-// Google Identity Services (OK OR NOT)
 let gisInited = false;
 
-// INITIALIZATION OF Google API (Google API Client)
+
 export function gapiLoaded() {
-// CLIENT DOWNLOADING GAPI
     gapi.load('client', async () => {
         await gapi.client.init({
             discoveryDocs: [DISCOVERY_DOC],
@@ -24,9 +17,8 @@ export function gapiLoaded() {
     })
 }
 
-// INITIALIZATION OF Google Identity Services
+
 export function gisLoaded() {
-  // CLIENTS TOKEN INITIALIZATION
     tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
@@ -36,20 +28,18 @@ export function gisLoaded() {
     console.log("GIS Initialized");
 };
 
-// GC SYNC FUNCTION
+
 export async function syncNoteToCalendar(title, description, startIso, endIso = null, location = null) {
     if (!gapiInited || !gisInited) {
         alert("Google API not initialized");
         return null;
     }
-    // promise - обєкт, результат асинхронної функції, відповідь (resolve/reject)
     return new Promise((resolve, reject) => {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) {
                 reject(resp);
                 return;
             }
-            // дані відправлені в гугл календар
             const event = {
             'summary': title,
             'description': description,
@@ -60,14 +50,12 @@ export async function syncNoteToCalendar(title, description, startIso, endIso = 
 
 
         try {
-          // await: зупиняє виконання асинхроної функції до отримання відповіді (будьякої)
         const response = await gapi.client.calendar.events.insert({
           'calendarId': 'primary',
           'resource': event,
         });
         console.log('Event created in Google:', response.result.id);
         resolve(response.result.id);
-        // catch - ловить помилки(reject)
       } catch (err) {
         console.error('Error creating event:', err);
         reject(err);
@@ -82,7 +70,6 @@ export async function syncNoteToCalendar(title, description, startIso, endIso = 
   });
 }
 
-// DELETE EVENT FROM GOOGLE CALENDAR
 export async function deleteCalendarEvent(googleEventId) {
   if (!googleEventId) return;
 
@@ -125,7 +112,7 @@ export async function deleteCalendarEvent(googleEventId) {
   });
 }
 
-// UPDATE EVENT IN GOOGLE CALENDAR
+
 export async function updateCalendarEvent(googleEventId, title, description, startIso, endIso = null, location = null) {
   if (!googleEventId) return null;
 

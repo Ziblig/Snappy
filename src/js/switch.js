@@ -44,4 +44,3 @@ checkbox.addEventListener(
     checkbox.checked ? setDarkMode() : setLightMode()
   }
 );
-

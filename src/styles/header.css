@@ -16,7 +16,6 @@
   color: var(--text-color);
 }
 
-/* INPUT */
 .search-input-wrp {
   display: flex;
   align-items: center;
@@ -24,7 +23,7 @@
   height: 24px;
   border-radius: 10px;
   padding: 10px 10px 10px 0px;
-  border: 1px solid black;
+  border: 1px solid var(--text-color); 
   overflow: hidden;
 }
 
@@ -39,9 +38,9 @@
   color: var(--text-color);
 }
 
-/* PLACEHOLDER */
 #search-input::placeholder {
   color: var(--text-color);
+  opacity: 0.75;
 }
 
 .search-btn {
@@ -57,7 +56,6 @@
   color: #f7e8d3;
 }
 
-/* SWITCH */
 .switch_container {
   display: flex;
 }
@@ -66,18 +64,17 @@
   display: none;
 }
 
-/* SWITCHER */
 .switch-label {
   position: relative;
   height: 25px;
   width: 64px;
   background-color: #895710;
-  border-radius: 2rem; /*32px*/
+  border-radius: 2rem; 
   overflow: hidden;
   transition: 0.3 ease;
   cursor: pointer;
 }
-/* SWITCHER */
+
 .switch-label::before {
   content: "";
   display: block;

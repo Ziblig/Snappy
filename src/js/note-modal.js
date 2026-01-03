@@ -14,7 +14,6 @@ import {
 let tasks = [];
 const STORAGE_KEY = "myNotes";
 
-// LOCAL STORAGE load/save
 function loadTasks() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
@@ -26,12 +25,12 @@ function loadTasks() {
     }
   }
 }
-// DOWNLOADING TO LOCAL STORAGE
+
 function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
-//  XSS prevention
+
 function escapeHtml(str) {
   return String(str || "").replace(
     /[&<>"']/g,
@@ -41,7 +40,7 @@ function escapeHtml(str) {
       ])
   );
 }
-// FROM 2025-12-27T18:30:00.000Z TO "2025-12-27T19:30"
+
 function toInputDateTime(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -58,38 +57,33 @@ function toInputDateTime(iso) {
   );
 }
 
-// TIME ON THE NOTE CARD
 function formatDateTime(iso) {
   if (!iso) return "";
-  // FROM ISO: 2025-12-27T18:30:00.0000 TO 18:30
   return new Date(iso).toLocaleString("cz-CZ", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
   });
 }
-// +1 IF NO ENDING TIME
+
 function addHoursToIso(iso, hours = 1) {
   if (!iso) return null;
   return new Date(new Date(iso).getTime() + hours * 3600000).toISOString();
 }
 
-// ?????????????????????????????????????????????????????????
+
 function renderTasks(tasksToRender = tasks) {
-  const $list = $("#taskList");
-  // ?????????????????????????????????????????????????????????
+  const $list = $("#taskList");  
   $list.empty();
 
-  // MESSAGE WHEN NO NOTES
+
   if (!tasksToRender.length) {
     $list.append(`<p class="notes-empty">There are no notes yet</p>`);
     return;
   }
 
-  // SORTING BY ID DESCENDING
   const sorted = [...tasksToRender].sort((a, b) => b.id - a.id);
 
-  // DISPLAY NOTES
   sorted.forEach((task) => {
     const startIso = task.start || null;
     const endIso = task.end || (startIso ? addHoursToIso(startIso, 1) : null);
@@ -115,7 +109,6 @@ function renderTasks(tasksToRender = tasks) {
     });
 }
 
-// SETTINGS PAGE
 function renderSettingsPage() {
   const $list = $("#taskList");
   const lang = getCurrentLang();
@@ -149,7 +142,6 @@ function renderSettingsPage() {
         </div>
     `);
 
-  // REINITIALIZE SETTINGS LISTENERS
   initSettingsListeners();
 
   $("#backFromSettings").on("click", () => {
@@ -158,7 +150,6 @@ function renderSettingsPage() {
   });
 }
 
-//LANGUAGE-SENSITIVE VIEW FUNCTIONS
 function showNotesView() {
   $("#taskList").removeClass("settings-view");
   $(".notes_title").text(translations[getCurrentLang()].notesTitle);
@@ -167,7 +158,6 @@ function showNotesView() {
 }
 
 function showSettingsView() {
-  // ensure list layout is disabled when showing settings
   $("#taskList").removeClass("list-view");
   $("#taskList").addClass("settings-view");
   $(".notes_title").text(translations[getCurrentLang()].settingsTitle);
@@ -175,19 +165,18 @@ function showSettingsView() {
   renderSettingsPage();
 }
 
-// MODAL WINDOW FUNCTIONS
 function openModal(mode = "new", task = null) {
   const t = translations[getCurrentLang()];
   $("#taskModal").removeClass('hidden');
   $("#modalTitle").text(mode === "new" ? t.modalNewTitle : t.modalEditTitle);
 
-  // LANGUAGE-SENSITIVE LABELS AND PLACEHOLDERS OF NOTE
+
   const $fields = $(".modal-field span");
-  $fields.eq(0).text(t.summaryLabel);      // summary
-  $fields.eq(1).text(t.descriptionLabel);  // description
-  $fields.eq(2).text(t.locationLabel);     // location
-  $fields.eq(3).text(t.startLabel);        // start
-  $fields.eq(4).text(t.endLabel);          // end
+  $fields.eq(0).text(t.summaryLabel);     
+  $fields.eq(1).text(t.descriptionLabel); 
+  $fields.eq(2).text(t.locationLabel);     
+  $fields.eq(3).text(t.startLabel);      
+  $fields.eq(4).text(t.endLabel);          
 
   $("#taskSummary").attr('placeholder', t.summaryPlaceholder);
   $("#taskDescription").attr('placeholder', t.descriptionPlaceholder);
@@ -207,29 +196,21 @@ function openModal(mode = "new", task = null) {
     $("#taskLocation").val(task.location || "");
   }
 
-  // SET BUTTON DATA
   $('#saveTaskBtn').data("mode", mode).data("id", task?.id ?? null)
       .text(mode === "new" ? t.createBtn : t.saveBtn);
   $('#cancelTaskBtn').text(t.cancelBtn);
 }
 
-// CLOSE MODAL
 function closeModal() {
   $("#taskModal").addClass("hidden");
 }
 
-// MAIN LOGIC AFTER PAGE LOAD
 $(function () {
   loadTasks();
   renderTasks();
   initSettingsListeners();
-
-  // ensure greeting is restored on load
   updateUserGreeting();
 
-  // URL-CHECK FOR VIEW (support both ?view=... and #view=...)
-  //   ?  - server
-  //   #  - client
   const params = new URLSearchParams(window.location.search);
   let view = params.get("view");
   if (!view) {
@@ -240,8 +221,7 @@ $(function () {
   if (view === "settings") showSettingsView();
   else showNotesView();
 
-  // SIDEBAR NAVIGATION
-
+ 
   $('.content_item:contains("Note")').on("click", function (e) {
     e.preventDefault();
     history.pushState({ view: "notes" }, "", "?view=notes");
@@ -256,14 +236,14 @@ $(function () {
     $("#sidebar_toggle").prop("checked", false);
   });
 
-  // HANDLE BACK/FORWARD BROWSER BUTTONS
+
   window.onpopstate = function () {
     const v = new URLSearchParams(window.location.search).get("view");
     if (v === "settings") showSettingsView();
     else showNotesView();
   };
 
-  // SEARCH NOTES BY SUMMARY OR DESCRIPTION
+
   $('input[placeholder="Search..."]').on("input", function () {
     const query = $(this).val().toLowerCase();
     const filtered = tasks.filter(
@@ -274,25 +254,19 @@ $(function () {
     renderTasks(filtered);
   });
 
-  // Consolidated handler: handles header button and icon clicks
-  // TOGGLE - ON/OFF LIST VIEW
   $("#form-note_btn").on("click", function () {
-    // do not toggle list view while settings page is active
     if ($("#taskList").hasClass("settings-view")) return;
     $("#taskList").toggleClass("list-view");
     const isList = $("#taskList").hasClass("list-view");
-    // CHANGING THE LINK HASH
     window.location.hash = isList ? "view=list" : "view=grid";
     const $icon = $(this).find("i");
     $icon.toggleClass("icon-list-bulleted icon-apps");
   });
 
-  // ADD NOTE BUTTON OPENS MODAL IN NEW MODE
   $(`#add-note_btn`).on("click", () => openModal("new"));
-  // CANCEL BUTTON MODAL
   $("#cancelTaskBtn").on("click", closeModal);
 
-  // SAVE BUTTON - CREATE OR UPDATE NOTE
+
   $("#saveTaskBtn").on("click", async function () {
     const t = translations[getCurrentLang()];
     const mode = $(this).data('mode');
@@ -308,7 +282,6 @@ $(function () {
       return;
     }
 
-    // NOTE TIME AND LOCATION PROCESSING
     const start = startVal ? new Date(startVal).toISOString() : null;
     const end = endVal
       ? new Date(endVal).toISOString()
@@ -317,7 +290,7 @@ $(function () {
       : null;
     const location = locationVal ? locationVal.trim() : null;
 
-    // ID FOR NEW NOTE DATE.now()
+
     if (mode === "new") {
       const newTask = {
         id: Date.now(),
@@ -330,7 +303,7 @@ $(function () {
       };
       tasks.push(newTask);
 
-      // SYNC TO GOOGLE CALENDAR
+
       try {
         const googleId = await syncNoteToCalendar(
           summary,
@@ -341,7 +314,7 @@ $(function () {
         );
         newTask.googleEventId = googleId;
         saveTasks();
-        // IF ERROR, SAVING LOCALLY WITHOUT GOOGLE EVENT ID
+
       } catch (err) {
         console.error("Sync to Google Calendar failed:", err);
       }
@@ -358,10 +331,8 @@ $(function () {
           location,
         };
 
-        // SYNC UPDATES TO GOOGLE CALENDAR
         if (oldTask.googleEventId) {
           try {
-            // UPDATE EXISTING EVENT
             await updateCalendarEvent(
               oldTask.googleEventId,
               summary,
@@ -374,7 +345,6 @@ $(function () {
             console.error("Failed to update Google Calendar event:", err);
           }
         } else {
-          // CREATE NEW EVENT IF NONE EXISTS BEFORE
           try {
             const googleId = await syncNoteToCalendar(
               summary,
@@ -396,20 +366,18 @@ $(function () {
     closeModal();
   });
 
-  // EDITTING NOTES
+
   $("#taskList").on("click", ".note-edit-btn", function () {
     const id = Number($(this).closest(".note-card").data("id"));
     const task = tasks.find((t) => t.id === id);
     if (task) openModal("edit", task);
   });
 
-  // DELETING NOTES
   $("#taskList").on("click", ".note-delete-btn", async function () {
     const id = Number($(this).closest(".note-card").data("id"));
     const taskToDelete = tasks.find((t) => t.id === id);
     if (!confirm("Delete this note?")) return;
 
-    // DELETE GOOGLE CALENDAR EVENT IF EXISTS
     if (taskToDelete && taskToDelete.googleEventId) {
       try {
         await deleteCalendarEvent(taskToDelete.googleEventId);
@@ -418,13 +386,11 @@ $(function () {
       }
     }
 
-    // FINAL LOCAL DELETION
     tasks = tasks.filter((t) => t.id !== id);
     saveTasks();
     renderTasks();
   });
 
-  // HANDLE LANGUAGE CHANGE GLOBALLY
   $(document).on("app:langChanged", () => {
     const v = new URLSearchParams(window.location.search).get("view");
     if (v === "settings") showSettingsView();
