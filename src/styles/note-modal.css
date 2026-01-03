@@ -95,3 +95,7 @@
 .notes-empty{
   color: var(--text-color);
 }
+
+#taskDescription {
+  resize: none;
+}

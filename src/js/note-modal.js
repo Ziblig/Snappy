@@ -26,7 +26,7 @@ function loadTasks() {
     }
   }
 }
-// ???????????????????????????????????????????????????????????
+// DOWNLOADING TO LOCAL STORAGE
 function saveTasks() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
@@ -41,7 +41,7 @@ function escapeHtml(str) {
       ])
   );
 }
-// ???????????????????????????????????????????????????????????
+// FROM 2025-12-27T18:30:00.000Z TO "2025-12-27T19:30"
 function toInputDateTime(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -106,7 +106,7 @@ function renderTasks(tasksToRender = tasks) {
             <h3 class="note-title">${escapeHtml(task.summary)}</h3>
             ${task.description ? `<p class="note-text">${escapeHtml(task.description)}</p>` : ""}
             <div class="note-bottom">
-                <span class="time-icon">🕓</span>
+                <span class="time-icon"><i class="icon-schedule"></i></span>
                 <span class="note-time">${time}</span>
                 ${task.location ? `<span class="note-location">📍 ${escapeHtml(task.location)}</span>` : ""}
             </div>
@@ -224,9 +224,19 @@ $(function () {
   renderTasks();
   initSettingsListeners();
 
-  // URL-CHECK FOR VIEW
+  // ensure greeting is restored on load
+  updateUserGreeting();
+
+  // URL-CHECK FOR VIEW (support both ?view=... and #view=...)
+  //   ?  - server
+  //   #  - client
   const params = new URLSearchParams(window.location.search);
-  const view = params.get("view");
+  let view = params.get("view");
+  if (!view) {
+    const hash = window.location.hash.replace(/^#/, '');
+    const hashParams = new URLSearchParams(hash);
+    view = hashParams.get("view");
+  }
   if (view === "settings") showSettingsView();
   else showNotesView();
 

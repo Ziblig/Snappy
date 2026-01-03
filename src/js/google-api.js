@@ -1,10 +1,11 @@
 // CLIENT ID
 const CLIENT_ID = process.env.GAPI_CLIENT_ID;
-
+// 
 const DISCOVERY_DOC = process.env.GAPI_DISCOVERY_DOC;
 // ACCESS SCOPE
 const SCOPES = process.env.GAPI_SCOPES;
 
+// Дані клієнта(id користувача)
 let tokenClient;
 // Google API (OK OR NOT)
 let gapiInited = false;
@@ -41,12 +42,14 @@ export async function syncNoteToCalendar(title, description, startIso, endIso = 
         alert("Google API not initialized");
         return null;
     }
+    // promise - обєкт, результат асинхронної функції, відповідь (resolve/reject)
     return new Promise((resolve, reject) => {
         tokenClient.callback = async (resp) => {
             if (resp.error !== undefined) {
                 reject(resp);
                 return;
             }
+            // дані відправлені в гугл календар
             const event = {
             'summary': title,
             'description': description,
@@ -55,13 +58,16 @@ export async function syncNoteToCalendar(title, description, startIso, endIso = 
             'location': location || undefined
           };
 
+
         try {
+          // await: зупиняє виконання асинхроної функції до отримання відповіді (будьякої)
         const response = await gapi.client.calendar.events.insert({
           'calendarId': 'primary',
           'resource': event,
         });
         console.log('Event created in Google:', response.result.id);
         resolve(response.result.id);
+        // catch - ловить помилки(reject)
       } catch (err) {
         console.error('Error creating event:', err);
         reject(err);
