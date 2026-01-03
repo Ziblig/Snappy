@@ -11,7 +11,22 @@ export const translations = {
         placeholderName: "Zadejte jméno...",
         syncText: "Poznámky jsou synchronizované",
         backBtn: "← Zpět",
-        hello: "Vítejte,"
+        hello: "Vítejte,",
+        // modal translations
+        modalNewTitle: "Nová poznámka",
+        modalEditTitle: "Upravit poznámku",
+        summaryLabel: "Název",
+        descriptionLabel: "Popis",
+        locationLabel: "Lokace",
+        startLabel: "Začátek",
+        endLabel: "Konec",
+        summaryPlaceholder: "Krátký název poznámky",
+        descriptionPlaceholder: "Popište poznámku...",
+        locationPlaceholder: "Volitelná lokace",
+        createBtn: "Vytvořit poznámku",
+        saveBtn: "Uložit změny",
+        cancelBtn: "Zrušit",
+        summaryEmpty: "Název nesmí být prázdný"
     },
     en: {
         settingsTitle: "Settings",
@@ -22,16 +37,31 @@ export const translations = {
         placeholderName: "Enter name...",
         syncText: "Notes currently synced",
         backBtn: "← Back",
-        hello: "Hello,"
+        hello: "Hello,",
+        // modal translations
+        modalNewTitle: "New Note",
+        modalEditTitle: "Edit Note",
+        summaryLabel: "Summary",
+        descriptionLabel: "Description",
+        locationLabel: "Location",
+        startLabel: "Start date-time",
+        endLabel: "End date-time",
+        summaryPlaceholder: "Short note title",
+        descriptionPlaceholder: "Describe your note...",
+        locationPlaceholder: "Optional location",
+        createBtn: "Create note",
+        saveBtn: "Save Changes",
+        cancelBtn: "Cancel",
+        summaryEmpty: "Summary can't be empty"
     }
 };
 
-// Отримання поточної мови
+// GET CURRENT LANGUAGE
 export function getCurrentLang() {
     return localStorage.getItem('app-lang') || 'en';
 }
 
-// Оновлення привітання в хедері
+// UPDATE USER GREETING
 export function updateUserGreeting() {
     const name = localStorage.getItem('user-name');
     const lang = getCurrentLang();
@@ -44,7 +74,7 @@ export function updateUserGreeting() {
     }
 }
 
-// Функція збереження налаштувань
+// INITIALIZE SETTINGS LISTENERS
 export function initSettingsListeners() {
     $(document).on('input', '#settings-user-name', function() {
         localStorage.setItem('user-name', $(this).val());
@@ -59,7 +89,7 @@ export function initSettingsListeners() {
         }
         localStorage.setItem('app-lang', newLang);
         updateUserGreeting();
-        // notify app about language change instead of reloading
+        // NOTIFY OTHER PARTS OF THE APP ABOUT LANGUAGE CHANGE
         $(document).trigger('app:langChanged');
     });
 }

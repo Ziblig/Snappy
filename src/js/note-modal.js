@@ -1,361 +1,437 @@
 import $ from "jquery";
-import { syncNoteToCalendar, deleteCalendarEvent, updateCalendarEvent } from './google-api.js';
-import { translations, getCurrentLang, updateUserGreeting, initSettingsListeners } from './settings.js';
+import {
+  syncNoteToCalendar,
+  deleteCalendarEvent,
+  updateCalendarEvent,
+} from "./google-api.js";
+import {
+  translations,
+  getCurrentLang,
+  updateUserGreeting,
+  initSettingsListeners,
+} from "./settings.js";
 
 let tasks = [];
 const STORAGE_KEY = "myNotes";
 
 // LOCAL STORAGE load/save
 function loadTasks() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        try {
-            tasks = JSON.parse(stored);
-        } catch (e) {
-            console.error('Error parsing localStorage.', e);
-            tasks = [];
-        }
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try {
+      tasks = JSON.parse(stored);
+    } catch (e) {
+      console.error("Error parsing localStorage.", e);
+      tasks = [];
     }
+  }
 }
 // ???????????????????????????????????????????????????????????
 function saveTasks() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
 }
 
 //  XSS prevention
 function escapeHtml(str) {
-    return String(str || "").replace(/[&<>"']/g, s =>
-        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[s])
-    );
+  return String(str || "").replace(
+    /[&<>"']/g,
+    (s) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[
+        s
+      ])
+  );
 }
 // ???????????????????????????????????????????????????????????
 function toInputDateTime(iso) {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return (d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") + "T" + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"));
+  if (!iso) return "";
+  const d = new Date(iso);
+  return (
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(d.getDate()).padStart(2, "0") +
+    "T" +
+    String(d.getHours()).padStart(2, "0") +
+    ":" +
+    String(d.getMinutes()).padStart(2, "0")
+  );
 }
 
 // TIME ON THE NOTE CARD
 function formatDateTime(iso) {
-    if (!iso) return "";
-    // FROM ISO: 2025-12-27T18:30:00.0000 TO 18:30 
-    return new Date(iso).toLocaleString("cz-CZ", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false
-    });
+  if (!iso) return "";
+  // FROM ISO: 2025-12-27T18:30:00.0000 TO 18:30
+  return new Date(iso).toLocaleString("cz-CZ", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
 }
 // +1 IF NO ENDING TIME
 function addHoursToIso(iso, hours = 1) {
-    if (!iso) return null;
-    return new Date(new Date(iso).getTime() + hours * 3600000).toISOString();
+  if (!iso) return null;
+  return new Date(new Date(iso).getTime() + hours * 3600000).toISOString();
 }
 
 // ?????????????????????????????????????????????????????????
 function renderTasks(tasksToRender = tasks) {
-    const $list = $('#taskList');
-    // ????????????????????????????????????????????????????????? 
-    $list.empty();
+  const $list = $("#taskList");
+  // ?????????????????????????????????????????????????????????
+  $list.empty();
 
-    // MESSAGE WHEN NO NOTES
-    if (!tasksToRender.length) {
-        $list.append(`<p class="notes-empty">There are no notes yet</p>`);
-        return;
-    }
+  // MESSAGE WHEN NO NOTES
+  if (!tasksToRender.length) {
+    $list.append(`<p class="notes-empty">There are no notes yet</p>`);
+    return;
+  }
 
-    // SORTING BY ID DESCENDING
-    const sorted = [...tasksToRender].sort((a, b) => b.id - a.id);
+  // SORTING BY ID DESCENDING
+  const sorted = [...tasksToRender].sort((a, b) => b.id - a.id);
 
-    // DISPLAY NOTES
-    sorted.forEach(task => {
-        const startIso = task.start || null;
-        const endIso = task.end || (startIso ? addHoursToIso(startIso, 1) : null);
-        const startStr = startIso ? formatDateTime(startIso) : "";
-        const endStr = endIso ? formatDateTime(endIso) : "";
-        const time = startStr && endStr ? `${startStr} — ${endStr}` : startStr || endStr || "";
-    
-        const html = `
+  // DISPLAY NOTES
+  sorted.forEach((task) => {
+    const startIso = task.start || null;
+    const endIso = task.end || (startIso ? addHoursToIso(startIso, 1) : null);
+    const startStr = startIso ? formatDateTime(startIso) : "";
+    const endStr = endIso ? formatDateTime(endIso) : "";
+    const time =
+      startStr && endStr ? `${startStr} — ${endStr}` : startStr || endStr || "";
+
+    const html = `
         <article class="note-card" data-id="${task.id}">
             <div class="note-top">
                 <button type="button" class="icon-btn note-edit-btn"><i class="icon-edit"></i></button>
                 <button type="button" class="icon-btn note-delete-btn"><i class="icon-delete"></i></button>
             </div>
             <h3 class="note-title">${escapeHtml(task.summary)}</h3>
-            ${task.description ? `<p class="note-text">${escapeHtml(task.description)}</p>` : ""}
+            ${
+              task.description
+                ? `<p class="note-text">${escapeHtml(task.description)}</p>`
+                : ""
+            }
             <div class="note-bottom">
                 <span class="time-icon">🕓</span>
                 <span class="note-time">${time}</span>
-                ${task.location ? `<span class="note-location">📍 ${escapeHtml(task.location)}</span>` : ""}
+                ${
+                  task.location
+                    ? `<span class="note-location">📍 ${escapeHtml(
+                        task.location
+                      )}</span>`
+                    : ""
+                }
             </div>
         </article>`;
-        $list.append(html);
-    });
+    $list.append(html);
+  });
 }
 
-// SETTINGS PAGE 
+// SETTINGS PAGE
 function renderSettingsPage() {
-    const $list = $('#taskList');
-    const lang = getCurrentLang();
-    const userName = localStorage.getItem('user-name') || '';
-    const t = translations[lang];
+  const $list = $("#taskList");
+  const lang = getCurrentLang();
+  const userName = localStorage.getItem("user-name") || "";
+  const t = translations[lang];
 
-    $list.empty().append(`
+  $list.empty().append(`
         <div class="settings-container">
             <div class="status-card">
                 <div>
                     <label class="settings-label">${t.userNameLabel}</label>
-                    <input type="text" id="settings-user-name" value="${userName}" placeholder="${t.placeholderName}">
+                    <input type="text" id="settings-user-name" value="${userName}" placeholder="${
+    t.placeholderName
+  }">
                 </div>
                 <div>
                     <label class="settings-label">${t.langLabel}</label>
                     <select id="settings-lang">
-                        <option value="cz" ${lang === 'cz' ? 'selected' : ''}>Čeština</option>
-                        <option value="en" ${lang === 'en' ? 'selected' : ''}>English</option>
+                        <option value="cz" ${
+                          lang === "cz" ? "selected" : ""
+                        }>Čeština</option>
+                        <option value="en" ${
+                          lang === "en" ? "selected" : ""
+                        }>English</option>
                     </select>
                 </div>
-                <button id="backFromSettings" class="btn secondary">${t.backBtn}</button>
+                <button id="backFromSettings" class="btn secondary">${
+                  t.backBtn
+                }</button>
             </div>
         </div>
     `);
 
-    // Reinitialize listeners for newly rendered elements
-    initSettingsListeners();
+  // REINITIALIZE SETTINGS LISTENERS
+  initSettingsListeners();
 
-    $('#backFromSettings').on('click', () => {
-        history.pushState({view: 'notes'}, "", "?view=notes");
-        showNotesView();
-    });
+  $("#backFromSettings").on("click", () => {
+    history.pushState({ view: "notes" }, "", "?view=notes");
+    showNotesView();
+  });
 }
 
-/* --- 4. КЕРУВАННЯ ЕКРАНАМИ --- */
+//LANGUAGE-SENSITIVE VIEW FUNCTIONS
 function showNotesView() {
-    $('#taskList').removeClass('settings-view');
-    $(".notes_title").text(translations[getCurrentLang()].notesTitle);
-    $(".notes_btn-wrap").show();
-    renderTasks();
-}
-
-function showCalendarView() {
-    $('#taskList').removeClass('settings-view');
-    $(".notes_title").text(translations[getCurrentLang()].calendarTitle);
-    $(".notes_btn-wrap").hide();
-    renderCalendarStatusPage();
+  $("#taskList").removeClass("settings-view");
+  $(".notes_title").text(translations[getCurrentLang()].notesTitle);
+  $(".notes_btn-wrap").show();
+  renderTasks();
 }
 
 function showSettingsView() {
-    $('#taskList').addClass('settings-view');
-    $(".notes_title").text(translations[getCurrentLang()].settingsTitle);
-    $(".notes_btn-wrap").hide();
-    renderSettingsPage();
+  $("#taskList").addClass("settings-view");
+  $(".notes_title").text(translations[getCurrentLang()].settingsTitle);
+  $(".notes_btn-wrap").hide();
+  renderSettingsPage();
 }
 
 // MODAL WINDOW FUNCTIONS
 function openModal(mode = "new", task = null) {
-    $("#taskModal").removeClass('hidden');
-    $("#modalTitle").text(mode === "new" ? "New Note" : "Edit Note");
+  const t = translations[getCurrentLang()];
 
-    // SETTING VALUES IN INPUTS
-    if (mode === "new") {
-        $("#taskSummary").val("");
-        $("#taskDescription").val("");
-        $("#taskStart").val("");
-        $("#taskEnd").val("");
-        $("#taskLocation").val("");
-    } else {
-        $("#taskSummary").val(task.summary);
-        $("#taskDescription").val(task.description || "");
-        $("#taskStart").val(toInputDateTime(task.start));
-        $("#taskEnd").val(toInputDateTime(task.end));
-        $("#taskLocation").val(task.location || "");
-    }
+  $("#taskModal").removeClass('hidden');
+  $("#modalTitle").text(mode === "new" ? t.modalNewTitle : t.modalEditTitle);
 
-    // SETTING DATA ATTRIBUTES ON SAVE BUTTON
-    $('#saveTaskBtn').data("mode", mode).data("id", task?.id ?? null).text(mode === "new" ? "Create Note" : "Save Changes");
+  // set field labels and placeholders from translations
+  const $fields = $(".modal-field span");
+  $fields.eq(0).text(t.summaryLabel);      // summary
+  $fields.eq(1).text(t.descriptionLabel);  // description
+  $fields.eq(2).text(t.locationLabel);     // location
+  $fields.eq(3).text(t.startLabel);        // start
+  $fields.eq(4).text(t.endLabel);          // end
+
+  $("#taskSummary").attr('placeholder', t.summaryPlaceholder);
+  $("#taskDescription").attr('placeholder', t.descriptionPlaceholder);
+  $("#taskLocation").attr('placeholder', t.locationPlaceholder);
+
+  if (mode === "new") {
+    $("#taskSummary").val("");
+    $("#taskDescription").val("");
+    $("#taskStart").val("");
+    $("#taskEnd").val("");
+    $("#taskLocation").val("");
+  } else {
+    $("#taskSummary").val(task.summary);
+    $("#taskDescription").val(task.description || "");
+    $("#taskStart").val(toInputDateTime(task.start));
+    $("#taskEnd").val(toInputDateTime(task.end));
+    $("#taskLocation").val(task.location || "");
+  }
+
+  // set save button text based on mode and store mode/id on button
+  $('#saveTaskBtn').data("mode", mode).data("id", task?.id ?? null)
+      .text(mode === "new" ? t.createBtn : t.saveBtn);
+  $('#cancelTaskBtn').text(t.cancelBtn);
 }
 
 // CLOSE MODAL
 function closeModal() {
-    $("#taskModal").addClass('hidden');
+  $("#taskModal").addClass("hidden");
 }
-
 
 // MAIN LOGIC AFTER PAGE LOAD
 $(function () {
-    loadTasks();
-    renderTasks();
-    initSettingsListeners();
+  loadTasks();
+  renderTasks();
+  initSettingsListeners();
 
-     // Перевірка URL при старті
-    const params = new URLSearchParams(window.location.search);
-    const view = params.get('view');
-    if (view === 'calendar') showCalendarView();
-    else if (view === 'settings') showSettingsView();
+  // URL-CHECK FOR VIEW
+  const params = new URLSearchParams(window.location.search);
+  const view = params.get("view");
+  if (view === "settings") showSettingsView();
+  else showNotesView();
+
+  // SIDEBAR NAVIGATION
+
+  $('.content_item:contains("Note")').on("click", function (e) {
+    e.preventDefault();
+    history.pushState({ view: "notes" }, "", "?view=notes");
+    showNotesView();
+    $("#sidebar_toggle").prop("checked", false);
+  });
+
+  $('.content_item:contains("Settings")').on("click", function (e) {
+    e.preventDefault();
+    history.pushState({ view: "settings" }, "", "?view=settings");
+    showSettingsView();
+    $("#sidebar_toggle").prop("checked", false);
+  });
+
+  // HANDLE BACK/FORWARD BROWSER BUTTONS
+  window.onpopstate = function () {
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v === "settings") showSettingsView();
     else showNotesView();
+  };
 
-    // Навігація сайдбару
-    $('.content_item:contains("Calendar")').on('click', function(e) {
-        e.preventDefault();
-        history.pushState({view: 'calendar'}, "", "?view=calendar");
-        showCalendarView();
-        $('#sidebar_toggle').prop('checked', false);
-    });
+  // SEARCH NOTES BY SUMMARY OR DESCRIPTION
+  $('input[placeholder="Search..."]').on("input", function () {
+    const query = $(this).val().toLowerCase();
+    const filtered = tasks.filter(
+      (t) =>
+        t.summary.toLowerCase().includes(query) ||
+        (t.description && t.description.toLowerCase().includes(query))
+    );
+    renderTasks(filtered);
+  });
 
-    $('.content_item:contains("Note")').on('click', function(e) {
-        e.preventDefault();
-        history.pushState({view: 'notes'}, "", "?view=notes");
-        showNotesView();
-        $('#sidebar_toggle').prop('checked', false);
-    });
+  // Consolidated handler: handles header button and icon clicks
+  // TOGGLE - ON/OFF LIST VIEW
+  $("#form-note_btn").on("click", function () {
+    $("#taskList").toggleClass("list-view");
+    const isList = $("#taskList").hasClass("list-view");
+    // CHANGING THE LINK HASH
+    window.location.hash = isList ? "view=list" : "view=grid";
+    // Toggle icon: list-bulleted ↔ apps
+    // ІКОНКА <i class="icon-list-bulleted"> САМЕ В КНОПЦІ form-note_btn
+    // THIS - FORM-NOTE_BTN
+    const $icon = $(this).find("i");
+    // icon-list-bulleted - LIST
+    // icon-apps - GRID
+    $icon.toggleClass("icon-list-bulleted icon-apps");
+  });
 
-    $('.content_item:contains("Settings")').on('click', function(e) {
-        e.preventDefault();
-        history.pushState({view: 'settings'}, "", "?view=settings");
-        showSettingsView();
-        $('#sidebar_toggle').prop('checked', false);
-    });
+  // ADD NOTE BUTTON OPENS MODAL IN NEW MODE
+  $(`#add-note_btn`).on("click", () => openModal("new"));
+  // CANCEL BUTTON MODAL
+  $("#cancelTaskBtn").on("click", closeModal);
 
-    // Обробка кнопок "Назад/Вперед"
-    window.onpopstate = function() {
-        const v = new URLSearchParams(window.location.search).get('view');
-        if (v === 'calendar') showCalendarView();
-        else if (v === 'settings') showSettingsView();
-        else showNotesView();
-    };
+  // SAVE BUTTON - CREATE OR UPDATE NOTE
+  $("#saveTaskBtn").on("click", async function () {
+    const t = translations[getCurrentLang()];
+    const mode = $(this).data('mode');
+    const id = Number($(this).data('id'));
+    const summary = $("#taskSummary").val().trim();
+    const description = $("#taskDescription").val().trim();
+    const startVal = $("#taskStart").val();
+    const endVal = $("#taskEnd").val();
+    const locationVal = $("#taskLocation").val();
 
-    // SEARCH NOTES BY SUMMARY OR DESCRIPTION
-    $('input[placeholder="Search..."]').on('input', function() {
-        const query = $(this).val().toLowerCase();
-        const filtered = tasks.filter(t => 
-            t.summary.toLowerCase().includes(query) || 
-            (t.description && t.description.toLowerCase().includes(query))
+    if (!summary) {
+      alert(t.summaryEmpty);
+      return;
+    }
+
+    // NOTE TIME AND LOCATION PROCESSING
+    const start = startVal ? new Date(startVal).toISOString() : null;
+    const end = endVal
+      ? new Date(endVal).toISOString()
+      : start
+      ? addHoursToIso(start, 1)
+      : null;
+    const location = locationVal ? locationVal.trim() : null;
+
+    // ID FOR NEW NOTE DATE.now()
+    if (mode === "new") {
+      const newTask = {
+        id: Date.now(),
+        summary,
+        description,
+        start,
+        end,
+        location,
+        googleEventId: null,
+      };
+      tasks.push(newTask);
+
+      // SYNC TO GOOGLE CALENDAR
+      try {
+        const googleId = await syncNoteToCalendar(
+          summary,
+          description,
+          start,
+          end,
+          location
         );
-        renderTasks(filtered);
-    });
-   
+        newTask.googleEventId = googleId;
+        saveTasks();
+        // IF ERROR, SAVING LOCALLY WITHOUT GOOGLE EVENT ID
+      } catch (err) {
+        console.error("Sync to Google Calendar failed:", err);
+      }
+    } else {
+      const index = tasks.findIndex((task) => task.id === id);
+      if (index !== -1) {
+        const oldTask = tasks[index];
+        tasks[index] = {
+          ...tasks[index],
+          summary,
+          description,
+          start,
+          end,
+          location,
+        };
 
-    // Consolidated handler: handles header button and icon clicks
-    // TOGGLE - ON/OFF LIST VIEW
-    $('#form-note_btn').on('click', function() {
-        $('#taskList').toggleClass('list-view');
-        const isList = $('#taskList').hasClass('list-view');
-        // CHANGING THE LINK HASH
-        window.location.hash = isList ? 'view=list' : 'view=grid';
-        // Toggle icon: list-bulleted ↔ apps
-        // ІКОНКА <i class="icon-list-bulleted"> САМЕ В КНОПЦІ form-note_btn
-        // THIS - FORM-NOTE_BTN
-        const $icon = $(this).find('i');
-        // icon-list-bulleted - LIST
-        // icon-apps - GRID
-        $icon.toggleClass('icon-list-bulleted icon-apps');
-    });
-
-    // ADD NOTE BUTTON OPENS MODAL IN NEW MODE
-    $(`#add-note_btn`).on('click', () => openModal("new"));
-    // CANCEL BUTTON CLOSES MODAL
-    $('#cancelTaskBtn').on('click', closeModal);
-
-    // SAVE BUTTON - CREATE OR UPDATE NOTE
-    $('#saveTaskBtn').on('click', async function () {
-        const mode = $(this).data('mode');
-        const id = Number($(this).data('id'));
-        const summary = $("#taskSummary").val().trim();
-        const description = $("#taskDescription").val().trim();
-        const startVal = $("#taskStart").val();
-        const endVal = $("#taskEnd").val();
-        const locationVal = $("#taskLocation").val();
-
-        if (!summary) {
-            alert("Summary can't be empty");
-            return;
-        }
-
-        // NOTE TIME AND LOCATION PROCESSING
-        const start = startVal ? new Date(startVal).toISOString() : null;
-        const end = endVal ? new Date(endVal).toISOString() : (start ? addHoursToIso(start, 1) : null);
-        const location = locationVal ? locationVal.trim() : null;
-
-        // ID FOR NEW NOTE DATE.now()
-        if (mode === "new") {
-            const newTask = { id: Date.now(), summary, description, start, end, location, googleEventId: null };
-            tasks.push(newTask);
-            
-            // SYNC TO GOOGLE CALENDAR
-            try {
-                const googleId = await syncNoteToCalendar(summary, description, start, end, location);
-                newTask.googleEventId = googleId;
-                saveTasks();
-            // IF ERROR, SAVING LOCALLY WITHOUT GOOGLE EVENT ID
-            } catch (err) {
-                console.error("Sync to Google Calendar failed:", err);
-            }
+        // SYNC UPDATES TO GOOGLE CALENDAR
+        if (oldTask.googleEventId) {
+          try {
+            // Update existing event
+            await updateCalendarEvent(
+              oldTask.googleEventId,
+              summary,
+              description,
+              start,
+              end,
+              location
+            );
+          } catch (err) {
+            console.error("Failed to update Google Calendar event:", err);
+          }
         } else {
-            const index = tasks.findIndex(task => task.id === id);
-            if (index !== -1) {
-                const oldTask = tasks[index];
-                tasks[index] = { ...tasks[index], summary, description, start, end, location };
-                
-                // SYNC UPDATES TO GOOGLE CALENDAR
-                if (oldTask.googleEventId) {
-                    try {
-                        // Update existing event
-                        await updateCalendarEvent(oldTask.googleEventId, summary, description, start, end, location);
-                    } catch (err) {
-                        console.error("Failed to update Google Calendar event:", err);
-                    }
-                } else {
-                    // CREATE NEW EVENT IF NONE EXISTS BEFORE
-                    try {
-                        const googleId = await syncNoteToCalendar(summary, description, start, end, location);
-                        tasks[index].googleEventId = googleId;
-                    } catch (err) {
-                        console.error("Failed to create Google Calendar event:", err);
-                    }
-                }
-            }
+          // CREATE NEW EVENT IF NONE EXISTS BEFORE
+          try {
+            const googleId = await syncNoteToCalendar(
+              summary,
+              description,
+              start,
+              end,
+              location
+            );
+            tasks[index].googleEventId = googleId;
+          } catch (err) {
+            console.error("Failed to create Google Calendar event:", err);
+          }
         }
+      }
+    }
 
-        saveTasks();
-        renderTasks();
-        closeModal();
-    });
+    saveTasks();
+    renderTasks();
+    closeModal();
+  });
 
+  // EDITTING NOTES
+  $("#taskList").on("click", ".note-edit-btn", function () {
+    const id = Number($(this).closest(".note-card").data("id"));
+    const task = tasks.find((t) => t.id === id);
+    if (task) openModal("edit", task);
+  });
 
-    // EDITTING NOTES
-    $('#taskList').on("click", ".note-edit-btn", function () {
-        const id = Number($(this).closest(".note-card").data('id'));
-        const task = tasks.find(t => t.id === id);
-        if (task) openModal("edit", task);
-    });
+  // DELETING NOTES
+  $("#taskList").on("click", ".note-delete-btn", async function () {
+    const id = Number($(this).closest(".note-card").data("id"));
+    const taskToDelete = tasks.find((t) => t.id === id);
+    if (!confirm("Delete this note?")) return;
 
+    // DELETE GOOGLE CALENDAR EVENT IF EXISTS
+    if (taskToDelete && taskToDelete.googleEventId) {
+      try {
+        await deleteCalendarEvent(taskToDelete.googleEventId);
+      } catch (err) {
+        console.error("Failed to delete Google Calendar event:", err);
+      }
+    }
 
-    // DELETING NOTES
-    $('#taskList').on("click", ".note-delete-btn", async function () {
-        const id = Number($(this).closest(".note-card").data('id'));
-        const taskToDelete = tasks.find(t => t.id === id);
-        if (!confirm("Delete this note?")) return;
+    // FINAL LOCAL DELETION
+    tasks = tasks.filter((t) => t.id !== id);
+    saveTasks();
+    renderTasks();
+  });
 
-        // DELETE GOOGLE CALENDAR EVENT IF EXISTS
-        if (taskToDelete && taskToDelete.googleEventId) {
-            try {
-                await deleteCalendarEvent(taskToDelete.googleEventId);
-            } catch (err) {
-                console.error('Failed to delete Google Calendar event:', err);
-            }
-        }
-
-        // FINAL LOCAL DELETION
-        tasks = tasks.filter(t => t.id !== id);
-        saveTasks();
-        renderTasks();
-    });
-
-    // handle language change emitted by settings.js (no full page reload)
-    $(document).on('app:langChanged', () => {
-        const v = new URLSearchParams(window.location.search).get('view');
-        if (v === 'calendar') showCalendarView();
-        else if (v === 'settings') showSettingsView();
-        else showNotesView();
-        updateUserGreeting();
-    });
+  // handle language change emitted by settings.js (no full page reload)
+  $(document).on("app:langChanged", () => {
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v === "settings") showSettingsView();
+    else showNotesView();
+    updateUserGreeting();
+  });
 });
-

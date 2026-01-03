@@ -6,7 +6,6 @@ const DISCOVERY_DOC = process.env.GAPI_DISCOVERY_DOC;
 const SCOPES = process.env.GAPI_SCOPES;
 
 let tokenClient;
-// ЗМІННА
 // Google API (OK OR NOT)
 let gapiInited = false;
 // Google Identity Services (OK OR NOT)

@@ -148,8 +148,37 @@ function closeModal() {
 $(function () {
     loadTasks();
     renderTasks();
+    initSettingsListeners();
 
-    // Umožňuje vyhledávání v poznámkách podle textu
+     // URL-CHECK FOR VIEW
+    const params = new URLSearchParams(window.location.search);
+    const view = params.get('view');
+    if (view === 'settings') showSettingsView();
+    else showNotesView();
+
+    // SIDEBAR NAVIGATION
+    $('.content_item:contains("Note")').on('click', function(e) {
+        e.preventDefault();
+        history.pushState({view: 'notes'}, "", "?view=notes");
+        showNotesView();
+        $('#sidebar_toggle').prop('checked', false);
+    });
+
+    $('.content_item:contains("Settings")').on('click', function(e) {
+        e.preventDefault();
+        history.pushState({view: 'settings'}, "", "?view=settings");
+        showSettingsView();
+        $('#sidebar_toggle').prop('checked', false);
+    });
+
+    // HANDLE BACK/FORWARD BROWSER BUTTONS
+    window.onpopstate = function() {
+        const v = new URLSearchParams(window.location.search).get('view');
+        if (v === 'settings') showSettingsView();
+        else showNotesView();
+    };
+
+    // SEARCH NOTES BY SUMMARY OR DESCRIPTION
     // .on('input') - event listener, který čeká na změnu v input poli
     $('input[placeholder="Search..."]').on('input', function() {
         // this: ten input, do kterého právě píšu
@@ -168,13 +197,24 @@ $(function () {
         );
         renderTasks(filtered);
     });
-    // Přepíná zobrazení poznámek mezi „grid“ a „list“
-    // $('.icon-btn:has(.icon-list), .icon-list'): Aby klik fungoval jak na ikonku, tak na celé tlačítko.
-    $('.icon-btn:has(.icon-list), .icon-list').closest('button').on('click', function() {
+   
+
+    // Consolidated handler: handles header button and icon clicks
+    // TOGGLE - ON/OFF LIST VIEW
+    $('#form-note_btn').on('click', function() {
         $('#taskList').toggleClass('list-view');
         const isList = $('#taskList').hasClass('list-view');
+        // CHANGING THE LINK HASH
         window.location.hash = isList ? 'view=list' : 'view=grid';
+        // Toggle icon: list-bulleted ↔ apps
+        // ІКОНКА <i class="icon-list-bulleted"> САМЕ В КНОПЦІ form-note_btn
+        // THIS - FORM-NOTE_BTN
+        const $icon = $(this).find('i');
+        // icon-list-bulleted - LIST
+        // icon-apps - GRID
+        $icon.toggleClass('icon-list-bulleted icon-apps');
     });
+
 
     // Klik na „Add note“ otevře modal v režimu new.
     $(`#add-note_btn`).on('click', () => openModal("new"));
@@ -302,135 +342,3 @@ $(function () {
 
 
 
-// // // MAIN LOGIC AFTER PAGE LOAD
-// $(function () {
-//     loadTasks();
-//     renderTasks();
-
-//     // SEARCH NOTES BY SUMMARY OR DESCRIPTION
-//     $('input[placeholder="Search..."]').on('input', function() {
-//         const query = $(this).val().toLowerCase();
-//         const filtered = tasks.filter(t => 
-//             t.summary.toLowerCase().includes(query) || 
-//             (t.description && t.description.toLowerCase().includes(query))
-//         );
-//         renderTasks(filtered);
-//     });
-   
-
-//     // Consolidated handler: handles header button and icon clicks
-//     // TOGGLE - ON/OFF LIST VIEW
-//     $('#form-note_btn').on('click', function() {
-//         $('#taskList').toggleClass('list-view');
-//         const isList = $('#taskList').hasClass('list-view');
-//         // CHANGING THE LINK HASH
-//         window.location.hash = isList ? 'view=list' : 'view=grid';
-//         // Toggle icon: list-bulleted ↔ apps
-//         // ІКОНКА <i class="icon-list-bulleted"> САМЕ В КНОПЦІ form-note_btn
-//         // THIS - FORM-NOTE_BTN
-//         const $icon = $(this).find('i');
-//         // icon-list-bulleted - LIST
-//         // icon-apps - GRID
-//         $icon.toggleClass('icon-list-bulleted icon-apps');
-//     });
-
-//     // ADD NOTE BUTTON OPENS MODAL IN NEW MODE
-//     $(`#add-note_btn`).on('click', () => openModal("new"));
-//     // CANCEL BUTTON CLOSES MODAL
-//     $('#cancelTaskBtn').on('click', closeModal);
-
-//     // SAVE BUTTON - CREATE OR UPDATE NOTE
-//     $('#saveTaskBtn').on('click', async function () {
-//         const mode = $(this).data('mode');
-//         const id = Number($(this).data('id'));
-//         const summary = $("#taskSummary").val().trim();
-//         const description = $("#taskDescription").val().trim();
-//         const startVal = $("#taskStart").val();
-//         const endVal = $("#taskEnd").val();
-//         const locationVal = $("#taskLocation").val();
-
-//         if (!summary) {
-//             alert("Summary can't be empty");
-//             return;
-//         }
-
-//         // NOTE TIME AND LOCATION PROCESSING
-//         const start = startVal ? new Date(startVal).toISOString() : null;
-//         const end = endVal ? new Date(endVal).toISOString() : (start ? addHoursToIso(start, 1) : null);
-//         const location = locationVal ? locationVal.trim() : null;
-
-//         // ID FOR NEW NOTE DATE.now()
-//         if (mode === "new") {
-//             const newTask = { id: Date.now(), summary, description, start, end, location, googleEventId: null };
-//             tasks.push(newTask);
-            
-//             // SYNC TO GOOGLE CALENDAR
-//             try {
-//                 const googleId = await syncNoteToCalendar(summary, description, start, end, location);
-//                 newTask.googleEventId = googleId;
-//                 saveTasks();
-//             // IF ERROR, SAVING LOCALLY WITHOUT GOOGLE EVENT ID
-//             } catch (err) {
-//                 console.error("Sync to Google Calendar failed:", err);
-//             }
-//         } else {
-//             const index = tasks.findIndex(task => task.id === id);
-//             if (index !== -1) {
-//                 const oldTask = tasks[index];
-//                 tasks[index] = { ...tasks[index], summary, description, start, end, location };
-                
-//                 // SYNC UPDATES TO GOOGLE CALENDAR
-//                 if (oldTask.googleEventId) {
-//                     try {
-//                         // Update existing event
-//                         await updateCalendarEvent(oldTask.googleEventId, summary, description, start, end, location);
-//                     } catch (err) {
-//                         console.error("Failed to update Google Calendar event:", err);
-//                     }
-//                 } else {
-//                     // CREATE NEW EVENT IF NONE EXISTS BEFORE
-//                     try {
-//                         const googleId = await syncNoteToCalendar(summary, description, start, end, location);
-//                         tasks[index].googleEventId = googleId;
-//                     } catch (err) {
-//                         console.error("Failed to create Google Calendar event:", err);
-//                     }
-//                 }
-//             }
-//         }
-
-//         saveTasks();
-//         renderTasks();
-//         closeModal();
-//     });
-
-
-//     // EDITTING NOTES
-//     $('#taskList').on("click", ".note-edit-btn", function () {
-//         const id = Number($(this).closest(".note-card").data('id'));
-//         const task = tasks.find(t => t.id === id);
-//         if (task) openModal("edit", task);
-//     });
-
-
-//     // DELETING NOTES
-//     $('#taskList').on("click", ".note-delete-btn", async function () {
-//         const id = Number($(this).closest(".note-card").data('id'));
-//         const taskToDelete = tasks.find(t => t.id === id);
-//         if (!confirm("Delete this note?")) return;
-
-//         // DELETE GOOGLE CALENDAR EVENT IF EXISTS
-//         if (taskToDelete && taskToDelete.googleEventId) {
-//             try {
-//                 await deleteCalendarEvent(taskToDelete.googleEventId);
-//             } catch (err) {
-//                 console.error('Failed to delete Google Calendar event:', err);
-//             }
-//         }
-
-//         // FINAL LOCAL DELETION
-//         tasks = tasks.filter(t => t.id !== id);
-//         saveTasks();
-//         renderTasks();
-//     });
-// });
