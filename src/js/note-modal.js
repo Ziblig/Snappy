@@ -167,6 +167,8 @@ function showNotesView() {
 }
 
 function showSettingsView() {
+  // ensure list layout is disabled when showing settings
+  $("#taskList").removeClass("list-view");
   $("#taskList").addClass("settings-view");
   $(".notes_title").text(translations[getCurrentLang()].settingsTitle);
   $(".notes_btn-wrap").hide();
@@ -265,6 +267,8 @@ $(function () {
   // Consolidated handler: handles header button and icon clicks
   // TOGGLE - ON/OFF LIST VIEW
   $("#form-note_btn").on("click", function () {
+    // do not toggle list view while settings page is active
+    if ($("#taskList").hasClass("settings-view")) return;
     $("#taskList").toggleClass("list-view");
     const isList = $("#taskList").hasClass("list-view");
     // CHANGING THE LINK HASH

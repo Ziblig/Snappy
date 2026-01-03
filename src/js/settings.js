@@ -12,7 +12,6 @@ export const translations = {
         syncText: "Poznámky jsou synchronizované",
         backBtn: "← Zpět",
         hello: "Vítejte,",
-        // modal translations
         modalNewTitle: "Nová poznámka",
         modalEditTitle: "Upravit poznámku",
         summaryLabel: "Název",
@@ -38,7 +37,6 @@ export const translations = {
         syncText: "Notes currently synced",
         backBtn: "← Back",
         hello: "Hello,",
-        // modal translations
         modalNewTitle: "New Note",
         modalEditTitle: "Edit Note",
         summaryLabel: "Summary",
